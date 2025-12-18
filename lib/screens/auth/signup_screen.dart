@@ -4,86 +4,167 @@ import '../../widgets/bottom_nav.dart';
 import '../../core/storage/local_storage.dart';
 import '../../widgets/app_scaffold.dart';
 
-class SignupScreen extends StatelessWidget {
+class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
+
+  @override
+  State<SignupScreen> createState() => _SignupScreenState();
+}
+
+class _SignupScreenState extends State<SignupScreen> {
+  final TextEditingController usernameCtrl = TextEditingController();
+  final TextEditingController birthdayCtrl = TextEditingController();
+  final TextEditingController emailCtrl = TextEditingController();
+  final TextEditingController passwordCtrl = TextEditingController();
+
+  bool hidePassword = true;
+
+  Future<void> pickDate() async {
+    final date = await showDatePicker(
+      context: context,
+      initialDate: DateTime(2003),
+      firstDate: DateTime(1980),
+      lastDate: DateTime.now(),
+    );
+
+    if (date != null) {
+      birthdayCtrl.text =
+          "${date.year}/${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}";
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      child: Padding(
-        padding: const EdgeInsets.all(8),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Full Name
+            const SizedBox(height: 12),
+
+            const Text(
+              "Create Your Account",
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Username
+            _inputField(
+              controller: usernameCtrl,
+              label: "Username",
+              hint: "Design_Divas",
+              icon: Icons.person_outline,
+            ),
+
+            const SizedBox(height: 18),
+
+            // Birthday
             TextField(
+              controller: birthdayCtrl,
+              readOnly: true,
+              onTap: pickDate,
               decoration: InputDecoration(
-                labelText: "Full Name",
-                prefixIcon: const Icon(Icons.person),
+                labelText: "Birthday",
+                hintText: "YYYY/MM/DD",
+                prefixIcon: const Icon(Icons.cake_outlined),
+                suffixIcon: const Icon(Icons.calendar_today),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
             ),
-            const SizedBox(height: 20),
+
+            const SizedBox(height: 18),
 
             // Email
-            TextField(
-              decoration: InputDecoration(
-                labelText: "Email",
-                prefixIcon: const Icon(Icons.email),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
+            _inputField(
+              controller: emailCtrl,
+              label: "Email",
+              hint: "hellogirl@gmail.com",
+              icon: Icons.email_outlined,
+              keyboardType: TextInputType.emailAddress,
             ),
-            const SizedBox(height: 20),
+
+            const SizedBox(height: 18),
 
             // Password
             TextField(
-              obscureText: true,
+              controller: passwordCtrl,
+              obscureText: hidePassword,
               decoration: InputDecoration(
                 labelText: "Password",
-                prefixIcon: const Icon(Icons.lock),
+                prefixIcon: const Icon(Icons.lock_outline),
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    hidePassword ? Icons.visibility_off : Icons.visibility,
+                  ),
+                  onPressed: () {
+                    setState(() => hidePassword = !hidePassword);
+                  },
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
             ),
+
             const SizedBox(height: 30),
 
             // Sign Up Button
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 50),
-                backgroundColor: Colors.purple.shade400,
+                minimumSize: const Size(double.infinity, 52),
+                backgroundColor: Colors.purple,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               onPressed: () async {
-                // Optional: clear previous data for testing
-                // await LocalStorage.clearQuizData();
-
-                // Check if quiz was completed
                 final quizCompleted = await LocalStorage.isQuizCompleted();
-                print("Quiz completed? $quizCompleted"); // debug
 
-                // Navigate based on quiz completion
+                if (!context.mounted) return;
+
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
                     builder: (_) => quizCompleted
-                        ? const BottomNav() // Skip quiz if done
-                        : const MentalHealthQuiz(), // Go to quiz if new
+                        ? const BottomNav()
+                        : const MentalHealthQuiz(),
                   ),
                 );
               },
               child: const Text(
-                "Sign Up",
-                style: TextStyle(fontSize: 18, color: Colors.white),
+                "SIGN UP",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _inputField({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    required IconData icon,
+    TextInputType keyboardType = TextInputType.text,
+  }) {
+    return TextField(
+      controller: controller,
+      keyboardType: keyboardType,
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        prefixIcon: Icon(icon),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
