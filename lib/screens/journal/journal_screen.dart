@@ -191,6 +191,7 @@ class _JournalScreenState extends State<JournalScreen> {
                     )
                   : ListView.separated(
                       itemCount: _entries.length,
+                      // ignore: unnecessary_underscores
                       separatorBuilder: (_, __) => const SizedBox(height: 12),
                       itemBuilder: (context, index) {
                         final entry = _entries[index];
