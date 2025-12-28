@@ -19,8 +19,7 @@ class _LoginScreenState extends State<LoginScreen>
   bool rememberMe = false;
   late final AnimationController _animController;
   late final Animation<double> _floating;
-  late final Animation<double> _fade;
-  late final Animation<Offset> _slide;
+
 
   @override
   void initState() {
@@ -37,22 +36,7 @@ class _LoginScreenState extends State<LoginScreen>
       ),
     );
 
-    _fade = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(
-        parent: _animController,
-        curve: const Interval(0, 0.4, curve: Curves.easeOut),
-      ),
-    );
 
-    _slide = Tween<Offset>(
-      begin: const Offset(0, 0.1),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _animController,
-        curve: const Interval(0, 0.4, curve: Curves.easeOut),
-      ),
-    );
 
     _animController.forward();
     _animController.repeat(reverse: true);
@@ -116,14 +100,10 @@ class _LoginScreenState extends State<LoginScreen>
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
                   child: ConstrainedBox(
                     constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight - 40, // Adjust for padding
+                      minHeight: constraints.maxHeight - 41, // Avoid sub-pixel overflow
                     ),
                     child: IntrinsicHeight(
-                      child: FadeTransition(
-                        opacity: _fade,
-                        child: SlideTransition(
-                          position: _slide,
-                          child: Column(
+                      child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               const Spacer(), // Flexible space top
@@ -310,9 +290,7 @@ class _LoginScreenState extends State<LoginScreen>
                           ),
                         ),
                       ),
-                    ),
-                  ),
-                );
+                    );
               },
             ),
           ),
