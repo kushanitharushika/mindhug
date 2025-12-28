@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/theme/app_colors.dart';
 import '../../widgets/app_scaffold.dart';
 
 class JournalScreen extends StatefulWidget {
@@ -54,7 +55,7 @@ class _JournalScreenState extends State<JournalScreen> {
                     decoration: InputDecoration(
                       hintText: 'Write what’s on your mind...',
                       filled: true,
-                      fillColor: Colors.grey.shade100,
+                      fillColor: Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade800 : Colors.grey.shade100,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide.none,
@@ -69,7 +70,7 @@ class _JournalScreenState extends State<JournalScreen> {
                       'How do you feel today?',
                       style: TextStyle(
                         fontSize: 13,
-                        color: Colors.grey.shade700,
+                        color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.grey.shade700,
                       ),
                     ),
                   ),
@@ -133,6 +134,11 @@ class _JournalScreenState extends State<JournalScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final subTextColor = isDark ? Colors.white70 : Colors.black54;
+    final cardColor = isDark ? AppColors.surfaceDark : Colors.white;
+
     return AppScaffold(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 6),
@@ -143,9 +149,13 @@ class _JournalScreenState extends State<JournalScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Journal',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 22, 
+                    fontWeight: FontWeight.bold,
+                    color: textColor,
+                    ),
                 ),
                 IconButton(
                   onPressed: _addEntry,
@@ -155,9 +165,9 @@ class _JournalScreenState extends State<JournalScreen> {
               ],
             ),
             const SizedBox(height: 6),
-            const Text(
+            Text(
               'A safe space for your thoughts',
-              style: TextStyle(fontSize: 13, color: Colors.black54),
+              style: TextStyle(fontSize: 13, color: subTextColor),
             ),
             const SizedBox(height: 16),
 
@@ -173,11 +183,11 @@ class _JournalScreenState extends State<JournalScreen> {
                             color: Colors.purple.shade200,
                           ),
                           const SizedBox(height: 12),
-                          const Text(
+                          Text(
                             'No journal entries yet',
                             style: TextStyle(
                               fontSize: 14,
-                              color: Colors.black54,
+                              color: subTextColor,
                             ),
                           ),
                           const SizedBox(height: 12),
@@ -196,6 +206,7 @@ class _JournalScreenState extends State<JournalScreen> {
                       itemBuilder: (context, index) {
                         final entry = _entries[index];
                         return Card(
+                          color: cardColor,
                           elevation: 2,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
@@ -215,7 +226,7 @@ class _JournalScreenState extends State<JournalScreen> {
                                           padding: const EdgeInsets.all(6),
                                           decoration: BoxDecoration(
                                             shape: BoxShape.circle,
-                                            color: Colors.purple.shade50,
+                                            color: isDark ? Colors.purple.withOpacity(0.2) : Colors.purple.shade50,
                                           ),
                                           child: Text(
                                             entry.mood,
@@ -227,9 +238,9 @@ class _JournalScreenState extends State<JournalScreen> {
                                         const SizedBox(width: 10),
                                         Text(
                                           _formatDate(entry.date),
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontSize: 12,
-                                            color: Colors.black54,
+                                            color: subTextColor,
                                           ),
                                         ),
                                       ],
@@ -248,7 +259,7 @@ class _JournalScreenState extends State<JournalScreen> {
                                 const SizedBox(height: 10),
                                 Text(
                                   entry.text,
-                                  style: const TextStyle(fontSize: 14),
+                                  style: TextStyle(fontSize: 14, color: textColor),
                                 ),
                               ],
                             ),

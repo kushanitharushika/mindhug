@@ -81,7 +81,12 @@ class _MindHugLogoState extends State<MindHugLogo>
             const SizedBox(height: 2),
             Text(
               'A little comfort, anytime',
-              style: TextStyle(color: Colors.grey[600], fontSize: 12),
+              style: TextStyle(
+                color: Theme.of(context).brightness == Brightness.dark 
+                    ? Colors.grey[400] 
+                    : Colors.grey[600],
+                fontSize: 12,
+              ),
             ),
           ],
         ),

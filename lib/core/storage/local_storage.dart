@@ -37,4 +37,25 @@ class LocalStorage {
     await prefs.remove('mental_health_level');
     await prefs.remove('quiz_completed');
   }
+  /// Save user profile
+  static Future<void> saveUserProfile({
+    required String name,
+    required String email,
+    required String phone,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('user_name', name);
+    await prefs.setString('user_email', email);
+    await prefs.setString('user_phone', phone);
+  }
+
+  /// Get user profile
+  static Future<Map<String, String>> getUserProfile() async {
+    final prefs = await SharedPreferences.getInstance();
+    return {
+      'name': prefs.getString('user_name') ?? 'John Doe',
+      'email': prefs.getString('user_email') ?? 'john.doe@example.com',
+      'phone': prefs.getString('user_phone') ?? '+1 234 567 890',
+    };
+  }
 }

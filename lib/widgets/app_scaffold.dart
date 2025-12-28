@@ -25,11 +25,17 @@ class AppScaffold extends StatelessWidget {
       ),
       body: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Colors.purple.shade50, Colors.white],
-          ),
+          gradient: Theme.of(context).brightness == Brightness.dark
+              ? LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [const Color(0xFF121212), Colors.black],
+                )
+              : LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Colors.purple.shade50, Colors.white],
+                ),
         ),
         child: SafeArea(
           top: false,

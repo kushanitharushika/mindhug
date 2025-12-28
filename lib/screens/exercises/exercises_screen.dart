@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import '../../core/storage/local_storage.dart';
+import '../../core/theme/app_colors.dart';
 import '../../widgets/app_scaffold.dart';
 
 class ExercisesScreen extends StatefulWidget {
@@ -128,6 +129,9 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
   @override
   Widget build(BuildContext context) {
     final exercises = getExercises();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final subTextColor = isDark ? Colors.white70 : Colors.black54;
 
     return AppScaffold(
       child: Padding(
@@ -151,9 +155,9 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
               ],
             ),
             const SizedBox(height: 2),
-            const Text(
+            Text(
               "Recommended for you",
-              style: TextStyle(fontSize: 14, color: Colors.black54),
+              style: TextStyle(fontSize: 14, color: subTextColor),
             ),
             const SizedBox(height: 6),
             // Exercise list
@@ -165,6 +169,7 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 6),
                     child: Card(
+                      color: isDark ? AppColors.surfaceDark : Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -176,16 +181,17 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
                         ),
                         title: Text(
                           exercise["title"]!,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.w600,
                             fontSize: 15,
+                            color: textColor,
                           ),
                         ),
                         subtitle: Text(
                           exercise["desc"]!,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 13,
-                            color: Colors.black87,
+                            color: subTextColor,
                           ),
                         ),
                         trailing: Icon(

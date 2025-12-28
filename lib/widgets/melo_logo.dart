@@ -97,7 +97,12 @@ class _MeloLogoState extends State<MeloLogo>
               const SizedBox(height: 2),
               Text(
                 'Here to listen',
-                style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                style: TextStyle(
+                  color: Theme.of(context).brightness == Brightness.dark 
+                      ? Colors.grey[400] 
+                      : Colors.grey[600],
+                  fontSize: 12,
+                ),
               ),
             ],
           ),

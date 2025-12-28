@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/storage/local_storage.dart';
+import '../../core/theme/app_colors.dart';
 import '../../widgets/mindhug_logo.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -51,6 +52,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final subTextColor = isDark ? Colors.white70 : Colors.black54;
+    final containerColor = isDark ? AppColors.surfaceDark : Colors.grey.shade100;
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -77,7 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
+                    color: containerColor,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
@@ -94,17 +100,20 @@ class _HomeScreenState extends State<HomeScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Mood of the Day',
                             style: TextStyle(
                               fontSize: 12,
-                              color: Colors.black54,
+                              color: subTextColor,
                             ),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             level,
-                            style: const TextStyle(fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: textColor,
+                            ),
                           ),
                         ],
                       ),
@@ -114,9 +123,13 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
             const SizedBox(height: 12),
-            const Text(
+            Text(
               "Hello 🌼",
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 22, 
+                fontWeight: FontWeight.bold,
+                color: textColor,
+              ),
             ),
             const SizedBox(height: 16),
 
@@ -153,18 +166,22 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 30),
 
             // Quick Actions
-            const Text(
+            Text(
               "Quick Actions",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                fontSize: 18, 
+                fontWeight: FontWeight.w600,
+                color: textColor,
+              ),
             ),
             const SizedBox(height: 16),
 
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _actionCard(Icons.self_improvement, "Exercises"),
-                _actionCard(Icons.book, "Journal"),
-                _actionCard(Icons.chat_bubble_outline, "Melo"),
+                _actionCard(Icons.self_improvement, "Exercises", containerColor, textColor),
+                _actionCard(Icons.book, "Journal", containerColor, textColor),
+                _actionCard(Icons.chat_bubble_outline, "Melo", containerColor, textColor),
               ],
             ),
           ],
@@ -173,13 +190,13 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _actionCard(IconData icon, String title) {
+  Widget _actionCard(IconData icon, String title, Color bgColor, Color textColor) {
     return Container(
       width: 100,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        color: Colors.grey.shade100,
+        color: bgColor,
       ),
       child: Column(
         children: [
@@ -188,7 +205,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Text(
             title,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 14),
+            style: TextStyle(fontSize: 14, color: textColor),
           ),
         ],
       ),

@@ -3,6 +3,7 @@ import '../screens/home/home_screen.dart';
 import '../screens/exercises/exercises_screen.dart';
 import '../screens/journal/journal_screen.dart';
 import '../screens/chatbot/melo_chat_screen.dart';
+import '../screens/profile/profile_screen.dart';
 
 class BottomNav extends StatefulWidget {
   const BottomNav({super.key});
@@ -19,7 +20,7 @@ class _BottomNavState extends State<BottomNav> {
     const ExercisesScreen(),
     const JournalScreen(),
     const MindHugChatbot(),
-    Center(child: Text("👤 Profile")),
+    const ProfileScreen(),
   ];
 
   @override

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/chat_message.dart';
+import '../../core/theme/app_colors.dart';
 import '../../widgets/melo_logo.dart';
 
 class MindHugChatbot extends StatefulWidget {
@@ -69,6 +70,11 @@ class _MindHugChatbotState extends State<MindHugChatbot> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final botMsgColor = isDark ? const Color(0xFF2C2C2C) : Colors.white;
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final subTextColor = isDark ? Colors.white70 : Colors.black45;
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -116,7 +122,7 @@ class _MindHugChatbotState extends State<MindHugChatbot> {
                       ),
                       constraints: const BoxConstraints(maxWidth: 160),
                       decoration: BoxDecoration(
-                        color: Colors.purple.shade50,
+                        color: isDark ? const Color(0xFF2C2C2C) : Colors.purple.shade50,
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
@@ -161,7 +167,7 @@ class _MindHugChatbotState extends State<MindHugChatbot> {
                               ],
                             )
                           : null,
-                      color: msg.isUser ? null : Colors.white,
+                      color: msg.isUser ? null : botMsgColor,
                       borderRadius: BorderRadius.only(
                         topLeft: Radius.circular(msg.isUser ? 16 : 4),
                         topRight: Radius.circular(msg.isUser ? 4 : 16),
@@ -170,10 +176,10 @@ class _MindHugChatbotState extends State<MindHugChatbot> {
                       ),
                       boxShadow: [
                         if (!msg.isUser)
-                          BoxShadow(
+                          const BoxShadow(
                             color: Colors.black12,
                             blurRadius: 6,
-                            offset: const Offset(0, 2),
+                            offset: Offset(0, 2),
                           ),
                       ],
                     ),
@@ -192,7 +198,7 @@ class _MindHugChatbotState extends State<MindHugChatbot> {
                                   fontSize: 14,
                                   color: msg.isUser
                                       ? Colors.white
-                                      : Colors.black87,
+                                      : textColor,
                                 ),
                               ),
                             ),
@@ -205,7 +211,7 @@ class _MindHugChatbotState extends State<MindHugChatbot> {
                             msg.formattedTime(),
                             style: TextStyle(
                               fontSize: 10,
-                              color: Colors.black45,
+                              color: msg.isUser ? Colors.white70 : subTextColor,
                             ),
                           ),
                         ),
@@ -221,8 +227,8 @@ class _MindHugChatbotState extends State<MindHugChatbot> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [BoxShadow(blurRadius: 6, color: Colors.black12)],
+              color: isDark ? AppColors.surfaceDark : Colors.white,
+              boxShadow: const [BoxShadow(blurRadius: 6, color: Colors.black12)],
             ),
             child: Row(
               children: [
@@ -234,12 +240,14 @@ class _MindHugChatbotState extends State<MindHugChatbot> {
                     decoration: InputDecoration(
                       hintText: "Type how you feel...",
                       filled: true,
-                      fillColor: Colors.grey.shade50,
+                      fillColor: isDark ? Colors.grey.shade900 : Colors.grey.shade50,
+                      hintStyle: TextStyle(color: subTextColor),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(25),
                         borderSide: BorderSide.none,
                       ),
                     ),
+                    style: TextStyle(color: textColor),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -261,6 +269,7 @@ class _MindHugChatbotState extends State<MindHugChatbot> {
 
 class _TypingDot extends StatefulWidget {
   final int delay;
+  // ignore: use_super_parameters
   const _TypingDot({Key? key, this.delay = 0}) : super(key: key);
 
   @override
