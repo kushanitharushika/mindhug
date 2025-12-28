@@ -38,7 +38,7 @@ class AppScaffold extends StatelessWidget {
                 ),
         ),
         child: SafeArea(
-          top: false,
+          top: true,
           child: Padding(
             padding: padding ?? const EdgeInsets.fromLTRB(16, 8, 16, 12),
             child: Column(
