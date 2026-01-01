@@ -160,16 +160,18 @@ class _LoginScreenState extends State<LoginScreen>
                                 ),
                                 child: Column(
                                   children: [
-                                    const CustomTextField(
+                                    CustomTextField(
                                       label: 'Email',
                                       prefixIcon: Icons.email_outlined,
                                       keyboardType: TextInputType.emailAddress,
+                                      controller: _emailController,
                                     ),
                                     const SizedBox(height: 20),
-                                    const CustomTextField(
+                                    CustomTextField(
                                       label: 'Password',
                                       prefixIcon: Icons.lock_outlined,
                                       obscureText: true,
+                                      controller: _passwordController,
                                     ),
                                     const SizedBox(height: 12),
                                     
@@ -212,23 +214,19 @@ class _LoginScreenState extends State<LoginScreen>
                                     
                                     const SizedBox(height: 24),
                                     
-                                    SizedBox(
-                                      width: double.infinity,
-                                      child: PrimaryButton(
-                                        label: 'Login',
-                                        onPressed: () {
-                                          Navigator.pushReplacement(
-                                            context,
-                                            MaterialPageRoute(builder: (_) => const BottomNav()),
-                                          );
-                                        },
+                                    if (_isLoading)
+                                      const CircularProgressIndicator()
+                                    else
+                                      SizedBox(
+                                        width: double.infinity,
+                                        child: PrimaryButton(
+                                          label: 'Login',
+                                          onPressed: _handleLogin,
+                                        ),
                                       ),
-                                    ),
                                   ],
                                 ),
-                              ),
-                              
-                              const SizedBox(height: 24),
+                              ),const SizedBox(height: 24),
                               
                               const Spacer(), // Flexible space middle
                               

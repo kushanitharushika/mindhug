@@ -37,7 +37,7 @@ class QuizResultScreen extends StatelessWidget {
 
               // 🧠 Title
               const Text(
-                "Your Mental Health Check",
+                "Your Wellbeing Snapshot",
                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
@@ -109,14 +109,14 @@ class QuizResultScreen extends StatelessWidget {
 
   String getSupportMessage(String level) {
     switch (level) {
-      case "🌸 Healthy Mind":
+      case "🌸 Balanced & Resilient":
         return "You're doing well! Keep nurturing your mental well-being with small positive habits 🌼";
-      case "🌿 Moderate Stress":
-        return "You might be feeling a little overwhelmed. Take breaks, breathe, and be kind to yourself 💚";
-      case "⚠️ Stressed":
-        return "It seems you're under stress. You're not alone — MindHug is here to support you 🤍";
+      case "🌿 Managing Well":
+        return "You seem to be managing, but might feel some pressure. Remember to take small breaks for yourself 💚";
+      case "⚠️ Needs Attention":
+        return "Based on your answers, it looks like you may be feeling under pressure lately. This doesn’t define you — it just shows what you might need right now 🤍";
       default:
-        return "You're going through a difficult time. Please consider reaching out to someone you trust 🌷";
+        return "It seems things are quite heavy right now. Please consider reaching out to someone you trust — you don't have to carry this alone 🌷";
     }
   }
 }

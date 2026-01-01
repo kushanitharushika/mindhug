@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../services/auth_service.dart';
 import '../quiz/mental_health_quiz.dart';
 import '../../widgets/bottom_nav.dart';
 import '../../core/storage/local_storage.dart';
@@ -16,6 +17,9 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController birthdayCtrl = TextEditingController();
   final TextEditingController emailCtrl = TextEditingController();
   final TextEditingController passwordCtrl = TextEditingController();
+  
+  final AuthService _authService = AuthService();
+  bool _isLoading = false;
 
   bool hidePassword = true;
 
@@ -30,6 +34,39 @@ class _SignupScreenState extends State<SignupScreen> {
     if (date != null) {
       birthdayCtrl.text =
           "${date.year}/${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}";
+    }
+  }
+
+  void _handleSignup() async {
+    setState(() => _isLoading = true);
+    try {
+      await _authService.createUserWithEmailAndPassword(
+        email: emailCtrl.text.trim(),
+        password: passwordCtrl.text.trim(),
+      );
+      
+      // Check quiz completion
+      final quizCompleted = await LocalStorage.isQuizCompleted();
+
+      if (!mounted) return;
+
+      // Navigate based on logic
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => quizCompleted
+              ? const BottomNav()
+              : const MentalHealthQuiz(),
+        ),
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Signup failed: ${e.toString()}')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -115,37 +152,27 @@ class _SignupScreenState extends State<SignupScreen> {
             const SizedBox(height: 30),
 
             // Sign Up Button
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 52),
-                backgroundColor: Colors.purple,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              onPressed: () async {
-                final quizCompleted = await LocalStorage.isQuizCompleted();
-
-                if (!context.mounted) return;
-
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => quizCompleted
-                        ? const BottomNav()
-                        : const MentalHealthQuiz(),
+            if (_isLoading)
+              const Center(child: CircularProgressIndicator())
+            else
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 52),
+                  backgroundColor: Colors.purple,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                );
-              },
-              child: const Text(
-                "SIGN UP",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                ),
+                onPressed: _handleSignup,
+                child: const Text(
+                  "SIGN UP",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
               ),
-            ),
           ],
         ),
       ),

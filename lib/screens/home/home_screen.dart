@@ -106,6 +106,7 @@ class _HomeScreenState extends State<HomeScreen> {
       body: _isLoading 
         ? const Center(child: CircularProgressIndicator())
         : ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.fromLTRB(24, 120, 24, 30),
           children: [
             // Greeting Section
@@ -143,9 +144,20 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
             
-            const SizedBox(height: 32),
-
             // Hero Mood Card
+            const SizedBox(height: 6),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 24),
+              child: Text(
+                "Feelings change. You’re not stuck like this.",
+                style: TextStyle(
+                  fontSize: 14,
+                  color: subTextColor.withOpacity(0.8),
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ),
+
             _buildMoodCard(isDark),
 
             const SizedBox(height: 32),
@@ -295,7 +307,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  hasCheckedIn ? "Mood Tracker" : "Daily Check-in",
+                  hasCheckedIn ? "Wellbeing Tracker" : "Daily Check-in",
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 12,
@@ -308,7 +320,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 20),
           Text(
-            hasCheckedIn ? "You're feeling" : "How are you today?",
+            hasCheckedIn ? "Current State" : "How are you today?",
             style: TextStyle(
               color: Colors.white.withOpacity(0.9),
               fontSize: 16,
@@ -316,7 +328,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            hasCheckedIn ? _level : "Track your mood",
+            hasCheckedIn ? _level : "Check your wellbeing",
             style: const TextStyle(
               color: Colors.white,
               fontSize: 24,
@@ -338,7 +350,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             child: Text(
-              hasCheckedIn ? "Retake Quiz" : "Start Check-in",
+              hasCheckedIn ? "Retake Check-in" : "Start Check-in",
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
           ),

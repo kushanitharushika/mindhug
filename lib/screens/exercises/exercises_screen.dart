@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import '../../core/storage/local_storage.dart';
 import '../../core/theme/app_colors.dart';
+import '../../widgets/mindhug_logo.dart';
 import '../../widgets/app_scaffold.dart';
 
 class ExercisesScreen extends StatefulWidget {
@@ -133,80 +134,95 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
     final textColor = isDark ? Colors.white : Colors.black87;
     final subTextColor = isDark ? Colors.white70 : Colors.black54;
 
-    return AppScaffold(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Top section: level + icon
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  level.isEmpty ? 'Exercises' : level,
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: getColor(),
-                  ),
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: MindHugLogo(size: 40),
+      ),
+      body: Container(
+         decoration: BoxDecoration(
+          gradient: isDark
+              ? LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [const Color(0xFF121212), Colors.black],
+                )
+              : LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Colors.purple.shade50, Colors.white],
                 ),
-                Icon(Icons.self_improvement, color: getColor(), size: 26),
-              ],
-            ),
-            const SizedBox(height: 2),
-            Text(
-              "Recommended for you",
-              style: TextStyle(fontSize: 14, color: subTextColor),
-            ),
-            const SizedBox(height: 6),
-            // Exercise list
-            Expanded(
-              child: ListView.builder(
-                itemCount: exercises.length,
-                itemBuilder: (context, index) {
-                  final exercise = exercises[index];
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 6),
-                    child: Card(
-                      color: isDark ? AppColors.surfaceDark : Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 2,
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 10,
-                        ),
-                        title: Text(
-                          exercise["title"]!,
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 15,
-                            color: textColor,
-                          ),
-                        ),
-                        subtitle: Text(
-                          exercise["desc"]!,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: subTextColor,
-                          ),
-                        ),
-                        trailing: Icon(
-                          Icons.play_circle_fill,
-                          color: getColor(),
-                          size: 24,
-                        ),
-                        onTap: () {},
-                      ),
+        ),
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(24, 120, 24, 30),
+          children: [
+              // Top section: level + icon
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    level.isEmpty ? 'Exercises' : level,
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: getColor(),
                     ),
-                  );
-                },
+                  ),
+                  Icon(Icons.self_improvement, color: getColor(), size: 28),
+                ],
               ),
-            ),
-          ],
+              const SizedBox(height: 8),
+              Text(
+                "Recommended for you",
+                style: TextStyle(fontSize: 14, color: subTextColor),
+              ),
+              const SizedBox(height: 16),
+              
+              // Exercise list rendered as children of Column
+              ...exercises.map((exercise) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: Card(
+                    color: isDark ? AppColors.surfaceDark : Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 2,
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 10,
+                      ),
+                      title: Text(
+                        exercise["title"]!,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                          color: textColor,
+                        ),
+                      ),
+                      subtitle: Text(
+                        exercise["desc"]!,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: subTextColor,
+                        ),
+                      ),
+                      trailing: Icon(
+                        Icons.play_circle_fill,
+                        color: getColor(),
+                        size: 24,
+                      ),
+                      onTap: () {},
+                    ),
+                  ),
+                );
+              }).toList(),
+            ],
         ),
       ),
     );

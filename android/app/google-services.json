@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "425563868374",
+    "project_id": "mindhug-b52e6",
+    "storage_bucket": "mindhug-b52e6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:425563868374:android:fe4a4508b856c6d4ea0d77",
+        "android_client_info": {
+          "package_name": "com.kushani.mindhug"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBgHN3jlub8OhQf7sVSF6A0DVMstzomQP0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

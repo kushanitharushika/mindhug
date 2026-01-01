@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'quiz_data.dart';
+import '../../models/quiz_question.dart';
 import 'quiz_results_screen.dart';
 import '../../core/storage/local_storage.dart';
 import '../../widgets/app_scaffold.dart';
@@ -14,6 +15,16 @@ class MentalHealthQuiz extends StatefulWidget {
 class _MentalHealthQuizState extends State<MentalHealthQuiz> {
   int currentQuestion = 0;
   int totalScore = 0;
+  List<QuizQuestion> _selectedQuestions = [];
+
+  @override
+  void initState() {
+    super.initState();
+    // Shuffle and pick 12 questions
+    final allQuestions = List<QuizQuestion>.from(quizQuestions);
+    allQuestions.shuffle();
+    _selectedQuestions = allQuestions.take(12).toList();
+  }
 
   void answerQuestion(int score) {
     setState(() {
@@ -21,7 +32,7 @@ class _MentalHealthQuizState extends State<MentalHealthQuiz> {
       currentQuestion++;
     });
 
-    if (currentQuestion >= quizQuestions.length) {
+    if (currentQuestion >= _selectedQuestions.length) {
       showResult();
     }
   }
@@ -41,23 +52,23 @@ class _MentalHealthQuizState extends State<MentalHealthQuiz> {
 
   String getMentalHealthLevel(int score) {
     if (score >= 40) {
-      return "🌸 Healthy Mind";
+      return "🌸 Balanced & Resilient";
     } else if (score >= 32) {
-      return "🌿 Moderate Stress";
+      return "🌿 Managing Well";
     } else if (score >= 24) {
-      return "⚠️ Stressed";
+      return "⚠️ Needs Attention";
     } else {
-      return "🚨 High Risk – Please seek support";
+      return "🚨 Priority Support Needed";
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (currentQuestion >= quizQuestions.length) {
+    if (currentQuestion >= _selectedQuestions.length) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    final question = quizQuestions[currentQuestion];
+    final question = _selectedQuestions[currentQuestion];
 
     return AppScaffold(
       showLogo: false,
@@ -67,7 +78,7 @@ class _MentalHealthQuizState extends State<MentalHealthQuiz> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "Question ${currentQuestion + 1}/${quizQuestions.length}",
+              "Question ${currentQuestion + 1}/${_selectedQuestions.length}",
               style: const TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 8),

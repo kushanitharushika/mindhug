@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/theme_manager.dart';
+import '../../widgets/mindhug_logo.dart';
 import '../auth/login_screen.dart';
 import '../quiz/mental_health_quiz.dart';
 import '../../core/storage/local_storage.dart';
@@ -39,182 +40,223 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final cardColor = isDark ? AppColors.surfaceDark : Colors.white;
 
     return Scaffold(
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-        child: Column(
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: const MindHugLogo(size: 40),
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: isDark
+              ? LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [const Color(0xFF121212), Colors.black],
+                )
+              : LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Colors.purple.shade50, Colors.white],
+                ),
+        ),
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(24, 120, 24, 30),
           children: [
-            const SizedBox(height: 20),
-            
-            // Header
-            Center(
-              child: Column(
+              
+              // Header
+              Center(
+                child: Column(
+                  children: [
+                    CircleAvatar(
+                      radius: 50,
+                      backgroundColor: AppColors.primary.withOpacity(0.1),
+                      child: const Icon(
+                        Icons.person,
+                        size: 50,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      _name,
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: textColor,
+                          ),
+                    ),
+                    Text(
+                      _email,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: subTextColor,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+              
+              const SizedBox(height: 32),
+              
+              // Main Actions Grid
+              Row(
                 children: [
-                  CircleAvatar(
-                    radius: 50,
-                    backgroundColor: AppColors.primary.withOpacity(0.1),
-                    child: const Icon(
-                      Icons.person,
-                      size: 50,
+                  Expanded(
+                    child: _ActionCard(
+                      title: 'Redo Wellbeing\nCheck',
+                      icon: Icons.refresh_rounded, // Assuming material icons
                       color: AppColors.primary,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    _name,
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: textColor,
-                        ),
-                  ),
-                  Text(
-                    _email,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: subTextColor,
-                        ),
-                  ),
-                ],
-              ),
-            ),
-            
-            const SizedBox(height: 32),
-            
-            // Main Actions Grid
-            Row(
-              children: [
-                Expanded(
-                  child: _ActionCard(
-                    title: 'Retake\nAssessment',
-                    icon: Icons.refresh_rounded, // Assuming material icons
-                    color: AppColors.primary,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const MentalHealthQuiz()),
-                      );
-                    },
-                    isDark: isDark,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _ActionCard(
-                    title: 'Crisis\nHelpline',
-                    icon: Icons.phone_in_talk,
-                    color: AppColors.error,
-                    onTap: () {
-                      // Show helplines
-                      _showHelplineDialog(context);
-                    },
-                    isDark: isDark,
-                  ),
-                ),
-              ],
-            ),
-            
-            const SizedBox(height: 32),
-            
-            // Settings Section
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'General',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: textColor,
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            
-            Container(
-              decoration: BoxDecoration(
-                color: cardColor,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: isDark
-                    ? null
-                    : [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-              ),
-              child: Column(
-                children: [
-                   _SettingsTile(
-                    icon: Icons.dark_mode_outlined,
-                    title: 'Dark Mode',
-                    trailing: Switch(
-                      value: isDark,
-                      activeColor: AppColors.primary,
-                      onChanged: (val) {
-                        ThemeManager.instance.toggleTheme(val);
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const MentalHealthQuiz()),
+                        );
                       },
+                      isDark: isDark,
                     ),
-                    isDark: isDark,
                   ),
-                  const Divider(height: 1),
-                  _SettingsTile(
-                    icon: Icons.person_outline,
-                    title: 'Account Details',
-                    onTap: () async {
-                      final updated = await Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const AccountDetailsScreen()),
-                      );
-                      if (updated == true) {
-                        _loadProfile();
-                      }
-                    },
-                    isDark: isDark,
-                  ),
-                  const Divider(height: 1),
-                  _SettingsTile(
-                    icon: Icons.notifications_outlined,
-                    title: 'Notifications',
-                    onTap: () {},
-                    isDark: isDark,
-                  ),
-                   const Divider(height: 1),
-                  _SettingsTile(
-                    icon: Icons.lock_outline,
-                    title: 'Privacy & Security',
-                    onTap: () {},
-                     isDark: isDark,
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _ActionCard(
+                      title: 'Crisis\nHelpline',
+                      icon: Icons.phone_in_talk,
+                      color: AppColors.error,
+                      onTap: () {
+                        // Show helplines
+                        _showHelplineDialog(context);
+                      },
+                      isDark: isDark,
+                    ),
                   ),
                 ],
               ),
-            ),
-            
-            const SizedBox(height: 32),
-            
-            // Logout
-            SizedBox(
-              width: double.infinity,
-              child: TextButton.icon(
-                onPressed: () {
-                   Navigator.pushAndRemoveUntil(
-                    context, 
-                    MaterialPageRoute(builder: (_) => const LoginScreen()), 
-                    (route) => false,
-                  );
-                },
-                icon: const Icon(Icons.logout, color: AppColors.error),
-                label: const Text(
-                  'Log Out',
+              
+              const SizedBox(height: 32),
+              
+              // Settings Section
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'General',
                   style: TextStyle(
-                    color: AppColors.error,
+                    fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    color: textColor,
                   ),
                 ),
               ),
-            ),
-            
-            const SizedBox(height: 20),
-          ],
+              const SizedBox(height: 16),
+              
+              Container(
+                decoration: BoxDecoration(
+                  color: cardColor,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: isDark
+                      ? null
+                      : [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                ),
+                child: Column(
+                  children: [
+                     _SettingsTile(
+                      icon: Icons.dark_mode_outlined,
+                      title: 'Dark Mode',
+                      trailing: Switch(
+                        value: isDark,
+                        activeColor: AppColors.primary,
+                        onChanged: (val) {
+                          ThemeManager.instance.toggleTheme(val);
+                        },
+                      ),
+                      isDark: isDark,
+                    ),
+                    const Divider(height: 1),
+                    _SettingsTile(
+                      icon: Icons.person_outline,
+                      title: 'Account Details',
+                      onTap: () async {
+                        final updated = await Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const AccountDetailsScreen()),
+                        );
+                        if (updated == true) {
+                          _loadProfile();
+                        }
+                      },
+                      isDark: isDark,
+                    ),
+                    const Divider(height: 1),
+                    _SettingsTile(
+                      icon: Icons.notifications_outlined,
+                      title: 'Notifications',
+                      onTap: () {},
+                      isDark: isDark,
+                    ),
+                     const Divider(height: 1),
+                    _SettingsTile(
+                      icon: Icons.lock_outline,
+                      title: 'Privacy & Security',
+                      onTap: () {},
+                       isDark: isDark,
+                    ),
+                     const Divider(height: 1),
+                    _SettingsTile(
+                      icon: Icons.info_outline,
+                      title: 'About MindHug',
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            title: const Text("About MindHug"),
+                            content: const Text(
+                              "MindHug is a supportive space designed to help you track your well-being, understand your emotions, and take small steps towards feeling better. \n\nWe use principles from Cognitive Behavioral Therapy (CBT) to help you recognize patterns and build resilience.",
+                              style: TextStyle(fontSize: 14),
+                            ),
+                            actions: [
+                              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Close"))
+                            ],
+                          ),
+                        );
+                      },
+                       isDark: isDark,
+                    ),
+                  ],
+                ),
+              ),
+              
+              const SizedBox(height: 32),
+              
+              // Logout
+              SizedBox(
+                width: double.infinity,
+                child: TextButton.icon(
+                  onPressed: () {
+                     Navigator.pushAndRemoveUntil(
+                      context, 
+                      MaterialPageRoute(builder: (_) => const LoginScreen()), 
+                      (route) => false,
+                    );
+                  },
+                  icon: const Icon(Icons.logout, color: AppColors.error),
+                  label: const Text(
+                    'Log Out',
+                    style: TextStyle(
+                      color: AppColors.error,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ),
+              
+              const SizedBox(height: 30),
+            ],
         ),
       ),
     );
