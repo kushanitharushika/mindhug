@@ -142,6 +142,7 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
         backgroundColor: appBarColor,
         toolbarHeight: 90,
         elevation: 0,
+        centerTitle: false,
         title: MindHugLogo(size: 40),
       ),
       body: Container(

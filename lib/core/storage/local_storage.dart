@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../models/journal_entry.dart';
 
 class LocalStorage {
   /// Save quiz result
@@ -67,5 +69,22 @@ class LocalStorage {
       'avatar': prefs.getString('user_avatar') ?? '',
       'birthday': prefs.getString('user_birthday') ?? '',
     };
+  }
+
+  /// Save journal entries
+  static Future<void> saveJournalEntries(List<JournalEntry> entries) async {
+    final prefs = await SharedPreferences.getInstance();
+    final String jsonString = jsonEncode(entries.map((e) => e.toJson()).toList());
+    await prefs.setString('journal_entries', jsonString);
+  }
+
+  /// Get journal entries
+  static Future<List<JournalEntry>> getJournalEntries() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? jsonString = prefs.getString('journal_entries');
+    if (jsonString == null) return [];
+    
+    final List<dynamic> jsonList = jsonDecode(jsonString);
+    return jsonList.map((e) => JournalEntry.fromJson(e)).toList();
   }
 }

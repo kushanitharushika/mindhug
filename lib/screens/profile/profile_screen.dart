@@ -53,6 +53,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         backgroundColor: appBarColor,
         toolbarHeight: 90,
         elevation: 0,
+        centerTitle: false,
         title: const MindHugLogo(size: 40),
       ),
       body: Container(

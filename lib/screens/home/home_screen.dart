@@ -88,6 +88,7 @@ class _HomeScreenState extends State<HomeScreen> {
         toolbarHeight: 90,
         elevation: 0,
         title: const MindHugLogo(size: 40),
+        centerTitle: false,
         actions: [
           IconButton(
             onPressed: () {
