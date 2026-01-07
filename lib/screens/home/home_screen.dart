@@ -81,10 +81,10 @@ class _HomeScreenState extends State<HomeScreen> {
     final subTextColor = isDark ? Colors.white70 : AppColors.textSecondary;
 
     return Scaffold(
-      extendBodyBehindAppBar: true,
+      // extendBodyBehindAppBar: true,
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        backgroundColor: Colors.transparent,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         title: const MindHugLogo(size: 40),
         actions: [
@@ -107,7 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ? const Center(child: CircularProgressIndicator())
         : ListView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(24, 120, 24, 30),
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 30),
           children: [
             // Greeting Section
             Text(
