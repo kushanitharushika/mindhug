@@ -43,6 +43,7 @@ class LocalStorage {
     required String email,
     required String phone,
     String? avatarPath,
+    String? birthday,
   }) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('user_name', name);
@@ -50,6 +51,9 @@ class LocalStorage {
     await prefs.setString('user_phone', phone);
     if (avatarPath != null) {
       await prefs.setString('user_avatar', avatarPath);
+    }
+    if (birthday != null) {
+      await prefs.setString('user_birthday', birthday);
     }
   }
 
@@ -61,6 +65,7 @@ class LocalStorage {
       'email': prefs.getString('user_email') ?? 'john.doe@example.com',
       'phone': prefs.getString('user_phone') ?? '+1 234 567 890',
       'avatar': prefs.getString('user_avatar') ?? '',
+      'birthday': prefs.getString('user_birthday') ?? '',
     };
   }
 }
