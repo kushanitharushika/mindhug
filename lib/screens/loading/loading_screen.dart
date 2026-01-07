@@ -43,10 +43,12 @@ class _LoadingScreenState extends State<LoadingScreen>
       if (widget.onFinish != null) {
         widget.onFinish!.call();
       } else {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const LoginScreen()),
-        );
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const LoginScreen()),
+          );
+        }
       }
     });
   }

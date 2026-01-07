@@ -16,7 +16,7 @@ class AuthWrapper extends StatelessWidget {
       stream: authService.authStateChanges,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const LoadingScreen();
+          return LoadingScreen(onFinish: () {});
         }
         
         if (snapshot.hasData) {

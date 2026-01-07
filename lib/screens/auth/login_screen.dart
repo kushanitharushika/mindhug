@@ -7,6 +7,8 @@ import '../../widgets/mindhug_logo.dart';
 import 'forgot_password_screen.dart';
 import 'signup_screen.dart';
 
+import '../../services/auth_service.dart';
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -20,6 +22,10 @@ class _LoginScreenState extends State<LoginScreen>
   late final AnimationController _animController;
   late final Animation<double> _floating;
 
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _authService = AuthService();
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -42,9 +48,29 @@ class _LoginScreenState extends State<LoginScreen>
     _animController.repeat(reverse: true);
   }
 
+  void _handleLogin() async {
+    setState(() => _isLoading = true);
+    try {
+      await _authService.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Login failed: ${e.toString()}')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
   @override
   void dispose() {
     _animController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
