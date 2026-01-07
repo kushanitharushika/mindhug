@@ -133,12 +133,14 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? Colors.white : Colors.black87;
     final subTextColor = isDark ? Colors.white70 : Colors.black54;
+    final appBarColor = isDark ? const Color(0xFF121212) : Colors.purple.shade50;
 
     return Scaffold(
-      extendBodyBehindAppBar: true,
+      // extendBodyBehindAppBar: true,
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        backgroundColor: Colors.transparent,
+        backgroundColor: appBarColor,
+        toolbarHeight: 90,
         elevation: 0,
         title: MindHugLogo(size: 40),
       ),
@@ -158,7 +160,7 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
         ),
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(24, 120, 24, 30),
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 30),
           children: [
               // Top section: level + icon
               Row(

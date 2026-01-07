@@ -85,6 +85,7 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        toolbarHeight: 90,
         elevation: 0,
         title: const MindHugLogo(size: 40),
         actions: [

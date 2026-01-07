@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/theme_manager.dart';
@@ -17,6 +18,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   String _name = 'John Doe';
   String _email = 'john.doe@example.com';
+  String? _avatarPath;
 
   @override
   void initState() {
@@ -29,6 +31,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() {
       _name = data['name']!;
       _email = data['email']!;
+      _avatarPath = data['avatar'];
+      if (_avatarPath != null && _avatarPath!.isEmpty) {
+        _avatarPath = null;
+      }
     });
   }
 
@@ -38,12 +44,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final textColor = isDark ? Colors.white : AppColors.textPrimary;
     final subTextColor = isDark ? Colors.white70 : AppColors.textSecondary;
     final cardColor = isDark ? AppColors.surfaceDark : Colors.white;
+    final appBarColor = isDark ? const Color(0xFF121212) : Colors.purple.shade50;
 
     return Scaffold(
-      extendBodyBehindAppBar: true,
+      // extendBodyBehindAppBar: true,
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        backgroundColor: Colors.transparent,
+        backgroundColor: appBarColor,
+        toolbarHeight: 90,
         elevation: 0,
         title: const MindHugLogo(size: 40),
       ),
@@ -63,7 +71,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(24, 120, 24, 30),
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 30),
           children: [
               
               // Header
@@ -73,11 +81,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     CircleAvatar(
                       radius: 50,
                       backgroundColor: AppColors.primary.withOpacity(0.1),
-                      child: const Icon(
-                        Icons.person,
-                        size: 50,
-                        color: AppColors.primary,
-                      ),
+                      backgroundImage: _avatarPath != null && File(_avatarPath!).existsSync()
+                          ? FileImage(File(_avatarPath!))
+                          : null,
+                      child: _avatarPath == null
+                          ? const Icon(
+                              Icons.person,
+                              size: 50,
+                              color: AppColors.primary,
+                            )
+                          : null,
                     ),
                     const SizedBox(height: 16),
                     Text(

@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../core/storage/local_storage.dart';
 import '../../core/theme/app_colors.dart';
 import '../../widgets/app_scaffold.dart';
@@ -17,7 +19,19 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
+  String? _avatarPath;
   bool _isLoading = false;
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      setState(() {
+        _avatarPath = pickedFile.path;
+      });
+    }
+  }
 
   @override
   void initState() {
@@ -31,6 +45,10 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
       _nameController.text = data['name'] ?? '';
       _emailController.text = data['email'] ?? '';
       _phoneController.text = data['phone'] ?? '';
+      _avatarPath = data['avatar'];
+      if (_avatarPath != null && _avatarPath!.isEmpty) {
+        _avatarPath = null;
+      }
     });
   }
 
@@ -46,6 +64,7 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
       name: _nameController.text.trim(),
       email: _emailController.text.trim(),
       phone: _phoneController.text.trim(),
+      avatarPath: _avatarPath,
     );
 
     setState(() => _isLoading = false);
@@ -97,23 +116,33 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                 key: _formKey,
                 child: Column(
                   children: [
-                    // Avatar (Placeholder)
                     Stack(
                       alignment: Alignment.bottomRight,
                       children: [
-                        CircleAvatar(
-                          radius: 50,
-                          backgroundColor: Colors.purple.shade100,
-                          child: Icon(Icons.person, size: 60, color: Colors.purple.shade300),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2),
+                        GestureDetector(
+                          onTap: _pickImage,
+                          child: CircleAvatar(
+                            radius: 50,
+                            backgroundColor: Colors.purple.shade100,
+                            backgroundImage: _avatarPath != null && File(_avatarPath!).existsSync()
+                                ? FileImage(File(_avatarPath!))
+                                : null,
+                            child: _avatarPath == null
+                                ? Icon(Icons.person, size: 60, color: Colors.purple.shade300)
+                                : null,
                           ),
-                          child: const Icon(Icons.camera_alt, size: 16, color: Colors.white),
+                        ),
+                        GestureDetector(
+                          onTap: _pickImage,
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 2),
+                            ),
+                            child: const Icon(Icons.camera_alt, size: 16, color: Colors.white),
+                          ),
                         ),
                       ],
                     ),
