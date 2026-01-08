@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 
 import 'firebase_options.dart';
 import 'screens/auth/auth_wrapper.dart';
+import 'screens/splash/splash_screen.dart'; // Import SplashScreen
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_manager.dart';
 
@@ -45,7 +46,7 @@ class MindHugApp extends StatelessWidget {
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: themeMode,
-          home: const AuthWrapper(),
+          home: const SplashScreen(),
         );
       },
     );
