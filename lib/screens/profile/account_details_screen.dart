@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../core/storage/local_storage.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../core/theme/app_colors.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../core/widgets/custom_text_field.dart';
@@ -55,42 +57,83 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
   }
 
   Future<void> _loadData() async {
-    final data = await LocalStorage.getUserProfile();
-    setState(() {
-      _nameController.text = data['name'] ?? '';
-      _emailController.text = data['email'] ?? '';
-      _phoneController.text = data['phone'] ?? '';
-      _birthdayController.text = data['birthday'] ?? '';
-      _avatarPath = data['avatar'];
-      if (_avatarPath != null && _avatarPath!.isEmpty) {
-        _avatarPath = null;
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final doc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+
+        if (doc.exists && mounted) {
+          final data = doc.data()!;
+          setState(() {
+            _nameController.text = data['Name'] ?? '';
+            _emailController.text = data['Email'] ?? '';
+            _phoneController.text = data['PhoneNumber'] ?? '';
+            _birthdayController.text = data['Birthday'] ?? '';
+            // _avatarPath = data['Avatar']; // Integrate if saving avatar URL in future
+          });
+        }
+      } else {
+        // Fallback for legacy debug
+        final data = await LocalStorage.getUserProfile();
+        setState(() {
+          _nameController.text = data['name'] ?? '';
+          _emailController.text = data['email'] ?? '';
+          _phoneController.text = data['phone'] ?? '';
+          _birthdayController.text = data['birthday'] ?? '';
+          _avatarPath = data['avatar'];
+          if (_avatarPath != null && _avatarPath!.isEmpty) {
+            _avatarPath = null;
+          }
+        });
       }
-    });
+    } catch (e) {
+      debugPrint("Error loading account details: $e");
+    }
   }
 
   Future<void> _saveData() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
-    
-    // Simulate network delay for effect
-    await Future.delayed(const Duration(milliseconds: 800));
 
-    await LocalStorage.saveUserProfile(
-      name: _nameController.text.trim(),
-      email: _emailController.text.trim(),
-      phone: _phoneController.text.trim(),
-      birthday: _birthdayController.text.trim(),
-      avatarPath: _avatarPath,
-    );
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+          'Name': _nameController.text.trim(),
+          'Email': _emailController.text.trim(), // Usually email is not changed here, but allowing sync
+          'PhoneNumber': _phoneController.text.trim(),
+          'Birthday': _birthdayController.text.trim(),
+          // 'Avatar': _avatarPath, // Decide if storing path or URL
+        }, SetOptions(merge: true));
+      }
 
-    setState(() => _isLoading = false);
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile updated successfully!')),
+      // Also update local storage as backup/cache if needed
+      await LocalStorage.saveUserProfile(
+        name: _nameController.text.trim(),
+        email: _emailController.text.trim(),
+        phone: _phoneController.text.trim(),
+        birthday: _birthdayController.text.trim(),
+        avatarPath: _avatarPath,
       );
-      Navigator.pop(context, true); // Return true to indicate update
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Profile updated successfully!')),
+        );
+        Navigator.pop(context, true); // Return true to indicate update
+      }
+    } catch (e) {
+      if (mounted) {
+         ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update profile: $e')),
+        );
+      }
+    } finally {
+       if (mounted) setState(() => _isLoading = false);
     }
   }
 

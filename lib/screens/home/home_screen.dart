@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/storage/local_storage.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../core/theme/app_colors.dart';
 import '../../widgets/mindhug_logo.dart';
 import '../profile/profile_screen.dart';
@@ -29,21 +31,36 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadData() async {
-    final profile = await LocalStorage.getUserProfile();
-    final savedScore = await LocalStorage.getQuizScore();
-    final savedLevel = await LocalStorage.getMentalHealthLevel();
-
-    if (mounted) {
-      setState(() {
-        _name = profile['name'] ?? "Friend";
-        // Extract first name
-        if (_name.contains(' ')) {
-          _name = _name.split(' ')[0];
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      String name = "Friend";
+      
+      if (user != null) {
+        final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+        if (doc.exists) {
+          name = doc.data()?['Name'] ?? "Friend";
         }
-        _score = savedScore ?? 0;
-        _level = savedLevel ?? "Not Checked";
-        _isLoading = false;
-      });
+      }
+
+      // Fallback or legacy load
+      final savedScore = await LocalStorage.getQuizScore();
+      final savedLevel = await LocalStorage.getMentalHealthLevel();
+
+      if (mounted) {
+        setState(() {
+          _name = name;
+          // Extract first name
+          if (_name.contains(' ')) {
+            _name = _name.split(' ')[0];
+          }
+          _score = savedScore;
+          _level = savedLevel ?? "Not Checked";
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      debugPrint("Error loading home data: $e");
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -91,15 +108,17 @@ class _HomeScreenState extends State<HomeScreen> {
         centerTitle: false,
         actions: [
           IconButton(
-            onPressed: () {
+            onPressed: () async {
                // Navigate to Profile via BottomNav convention or direct push
                // For now, let's push strictly for the avatar action
-               Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen()));
+               await Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen()));
+               // Reload data when returning in case profile changed
+               _loadData();
             },
             icon: CircleAvatar(
               radius: 18,
               backgroundColor: AppColors.primary.withOpacity(0.2),
-              child: Icon(Icons.person, color: AppColors.primary, size: 20),
+              child: const Icon(Icons.person, color: AppColors.primary, size: 20),
             ),
           ),
           const SizedBox(width: 16),

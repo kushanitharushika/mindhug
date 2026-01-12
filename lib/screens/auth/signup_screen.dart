@@ -14,7 +14,8 @@ class SignupScreen extends StatefulWidget {
 
 class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController usernameCtrl = TextEditingController();
-  final TextEditingController birthdayCtrl = TextEditingController();
+  final TextEditingController phoneCtrl = TextEditingController();
+
   final TextEditingController emailCtrl = TextEditingController();
   final TextEditingController passwordCtrl = TextEditingController();
   
@@ -23,19 +24,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
   bool hidePassword = true;
 
-  Future<void> pickDate() async {
-    final date = await showDatePicker(
-      context: context,
-      initialDate: DateTime(2003),
-      firstDate: DateTime(1980),
-      lastDate: DateTime.now(),
-    );
 
-    if (date != null) {
-      birthdayCtrl.text =
-          "${date.year}/${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}";
-    }
-  }
 
   void _handleSignup() async {
     setState(() => _isLoading = true);
@@ -43,6 +32,8 @@ class _SignupScreenState extends State<SignupScreen> {
       await _authService.createUserWithEmailAndPassword(
         email: emailCtrl.text.trim(),
         password: passwordCtrl.text.trim(),
+        name: usernameCtrl.text.trim(),
+        phoneNumber: phoneCtrl.text.trim(),
       );
       
       // Check quiz completion
@@ -99,23 +90,18 @@ class _SignupScreenState extends State<SignupScreen> {
 
             const SizedBox(height: 18),
 
-            // Birthday
-            TextField(
-              controller: birthdayCtrl,
-              readOnly: true,
-              onTap: pickDate,
-              decoration: InputDecoration(
-                labelText: "Birthday",
-                hintText: "YYYY/MM/DD",
-                prefixIcon: const Icon(Icons.cake_outlined),
-                suffixIcon: const Icon(Icons.calendar_today),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
+            // Phone Number
+            _inputField(
+              controller: phoneCtrl,
+              label: "Phone Number",
+              hint: "+94 76 123 4567",
+              icon: Icons.phone_outlined,
+              keyboardType: TextInputType.phone,
             ),
 
             const SizedBox(height: 18),
+
+
 
             // Email
             _inputField(

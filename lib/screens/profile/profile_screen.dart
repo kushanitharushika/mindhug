@@ -7,6 +7,10 @@ import '../auth/login_screen.dart';
 import '../quiz/mental_health_quiz.dart';
 import '../../core/storage/local_storage.dart';
 import 'account_details_screen.dart';
+import '../../services/auth_service.dart';
+import '../auth/auth_wrapper.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -27,15 +31,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _loadProfile() async {
-    final data = await LocalStorage.getUserProfile();
-    setState(() {
-      _name = data['name']!;
-      _email = data['email']!;
-      _avatarPath = data['avatar'];
-      if (_avatarPath != null && _avatarPath!.isEmpty) {
-        _avatarPath = null;
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final doc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+            
+        if (doc.exists && mounted) {
+           final data = doc.data()!;
+           setState(() {
+             _name = data['Name'] ?? 'MindHug User';
+             _email = data['Email'] ?? user.email ?? '';
+             // _avatarPath = data['avatar']; // Uncomment if you save avatar path in Firestore
+           });
+        }
+      } else {
+        // Fallback to local storage if not logged in (legacy support)
+        final data = await LocalStorage.getUserProfile();
+        if (mounted) {
+          setState(() {
+            _name = data['name']!;
+            _email = data['email']!;
+            _avatarPath = data['avatar'];
+            if (_avatarPath != null && _avatarPath!.isEmpty) {
+              _avatarPath = null;
+            }
+          });
+        }
       }
-    });
+    } catch (e) {
+      debugPrint("Error loading profile: $e");
+    }
   }
 
   @override
@@ -250,12 +278,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
               SizedBox(
                 width: double.infinity,
                 child: TextButton.icon(
-                  onPressed: () {
-                     Navigator.pushAndRemoveUntil(
-                      context, 
-                      MaterialPageRoute(builder: (_) => const LoginScreen()), 
-                      (route) => false,
-                    );
+                  onPressed: () async {
+                     await AuthService().signOut();
+                     if (context.mounted) {
+                       Navigator.pushAndRemoveUntil(
+                        context, 
+                        MaterialPageRoute(builder: (_) => const AuthWrapper()), 
+                        (route) => false,
+                      );
+                     }
                   },
                   icon: const Icon(Icons.logout, color: AppColors.error),
                   label: const Text(
