@@ -78,4 +78,67 @@ class AuthService {
       rethrow;
     }
   }
+
+  // Send password reset email
+  Future<void> sendPasswordResetEmail({required String email}) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+    } on FirebaseAuthException catch (e) {
+      debugPrint('Error sending password reset email: ${e.message}');
+      rethrow;
+    } catch (e) {
+      debugPrint('Error sending password reset email: $e');
+      rethrow;
+    }
+  }
+
+  // Verify Phone Number
+  Future<void> verifyPhoneNumber({
+    required String phoneNumber,
+    required Function(String, int?) onCodeSent,
+    required Function(FirebaseAuthException) onVerificationFailed,
+    required Function(PhoneAuthCredential) onVerificationCompleted,
+    required Function(String) onCodeAutoRetrievalTimeout,
+  }) async {
+    await _auth.verifyPhoneNumber(
+      phoneNumber: phoneNumber,
+      verificationCompleted: onVerificationCompleted,
+      verificationFailed: (e) {
+        debugPrint('Phone verification failed: ${e.message}');
+        onVerificationFailed(e);
+      },
+      codeSent: onCodeSent,
+      codeAutoRetrievalTimeout: onCodeAutoRetrievalTimeout,
+    );
+  }
+
+  // Sign in with Phone Credential
+  Future<UserCredential> signInWithPhoneCredential(PhoneAuthCredential credential) async {
+    try {
+      return await _auth.signInWithCredential(credential);
+    } catch (e) {
+      debugPrint('Error signing in with phone: $e');
+      rethrow;
+    }
+  }
+
+  // Get User Role
+  Future<String> getUserRole() async {
+    try {
+      final user = _auth.currentUser;
+      if (user != null) {
+        final doc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+        if (doc.exists) {
+          return doc.data()?['Role'] ?? 'user';
+        }
+      }
+      return 'user';
+    } catch (e) {
+      debugPrint('Error getting user role: $e');
+      return 'user';
+    }
+  }
 }
