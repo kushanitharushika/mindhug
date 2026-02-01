@@ -168,7 +168,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               const SizedBox(height: 20),
               
               // Header
-              Text(
+              const Text(
                 "Reset Password",
                 style: TextStyle(
                   fontSize: 24,

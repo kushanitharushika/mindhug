@@ -101,10 +101,10 @@ class _JournalScreenState extends State<JournalScreen> {
       body: Container(
         decoration: BoxDecoration(
           gradient: isDark
-              ? LinearGradient(
+              ? const LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [const Color(0xFF121212), Colors.black],
+                  colors: [Color(0xFF121212), Colors.black],
                 )
               : LinearGradient(
                   begin: Alignment.topLeft,
@@ -278,7 +278,7 @@ class _JournalScreenState extends State<JournalScreen> {
                                   children: [
                                     Text(
                                       _formatDate(entry.date),
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                         fontSize: 13,
                                         fontWeight: FontWeight.w500,
                                         color: Colors.grey,

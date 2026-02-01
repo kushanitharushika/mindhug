@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/theme_manager.dart';
 import '../../widgets/mindhug_logo.dart';
-import '../auth/login_screen.dart';
 import '../quiz/mental_health_quiz.dart';
 import '../../core/storage/local_storage.dart';
 import 'account_details_screen.dart';
@@ -90,10 +89,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: Container(
         decoration: BoxDecoration(
           gradient: isDark
-              ? LinearGradient(
+              ? const LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [const Color(0xFF121212), Colors.black],
+                  colors: [Color(0xFF121212), Colors.black],
                 )
               : LinearGradient(
                   begin: Alignment.topLeft,
@@ -214,7 +213,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       title: 'Dark Mode',
                       trailing: Switch(
                         value: isDark,
-                        activeColor: AppColors.primary,
+                        activeThumbColor: AppColors.primary,
                         onChanged: (val) {
                           ThemeManager.instance.toggleTheme(val);
                         },

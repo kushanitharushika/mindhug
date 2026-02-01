@@ -9,7 +9,6 @@ import '../quiz/mental_health_quiz.dart';
 import '../exercises/exercises_screen.dart';
 import '../journal/journal_screen.dart';
 import '../chatbot/melo_chat_screen.dart';
-import '../../widgets/bottom_nav.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -262,7 +261,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               child: Column(
                 children: [
-                  Icon(Icons.format_quote_rounded, color: AppColors.primary, size: 32),
+                  const Icon(Icons.format_quote_rounded, color: AppColors.primary, size: 32),
                   const SizedBox(height: 12),
                   Text(
                     "You don't have to control your thoughts. You just have to stop letting them control you.",

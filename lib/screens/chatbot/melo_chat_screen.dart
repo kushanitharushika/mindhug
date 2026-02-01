@@ -80,9 +80,9 @@ class _MindHugChatbotState extends State<MindHugChatbot> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
-        title: Row(
+        title: const Row(
           mainAxisSize: MainAxisSize.min,
-          children: const [
+          children: [
             MeloLogo(size: 32),
             SizedBox(width: 10),
             Text(
@@ -124,7 +124,7 @@ class _MindHugChatbotState extends State<MindHugChatbot> {
                       decoration: BoxDecoration(
                         color: isDark ? const Color(0xFF2C2C2C) : Colors.purple.shade50,
                         borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
+                        boxShadow: const [
                           BoxShadow(
                             color: Colors.black12,
                             blurRadius: 6,
@@ -132,9 +132,9 @@ class _MindHugChatbotState extends State<MindHugChatbot> {
                           ),
                         ],
                       ),
-                      child: Row(
+                      child: const Row(
                         mainAxisSize: MainAxisSize.min,
-                        children: const [
+                        children: [
                           _TypingDot(),
                           SizedBox(width: 6),
                           _TypingDot(delay: 120),

@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../models/journal_entry.dart';
 import '../../core/theme/app_colors.dart';
-import '../../widgets/app_scaffold.dart';
-import '../../core/widgets/primary_button.dart';
 
 class JournalEntryScreen extends StatefulWidget {
   final JournalEntry? entry;
@@ -167,7 +165,7 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
                 },
                 contentPadding: EdgeInsets.zero,
                 dense: true,
-              )).toList(),
+              )),
             ],
           ),
         );
@@ -187,7 +185,7 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
     final textColor = isDark ? Colors.white : AppColors.textPrimary;
     final surfaceColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
     final backgroundColor = isDark ? Colors.black : const Color(0xFFF8F9FE);
-    final accentColor = AppColors.primary;
+    const accentColor = AppColors.primary;
 
     return Scaffold(
       backgroundColor: backgroundColor,

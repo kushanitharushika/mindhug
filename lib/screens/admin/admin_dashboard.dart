@@ -38,19 +38,19 @@ class _AdminDashboardState extends State<AdminDashboard> {
           icon: Icon(Icons.arrow_back, color: isDark ? Colors.white : Colors.black87),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Row(
+        title: const Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const MindHugLogo(size: 32),
+            MindHugLogo(size: 32),
           ],
         ),
-        actions: [
+        actions: const [
           Padding(
-            padding: const EdgeInsets.only(right: 16),
+            padding: EdgeInsets.only(right: 16),
             child: CircleAvatar(
               backgroundColor: AppColors.primary,
               radius: 18,
-              child: const Icon(Icons.admin_panel_settings, color: Colors.white, size: 20),
+              child: Icon(Icons.admin_panel_settings, color: Colors.white, size: 20),
             ),
           ),
         ],

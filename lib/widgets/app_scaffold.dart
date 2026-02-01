@@ -29,10 +29,10 @@ class AppScaffold extends StatelessWidget {
       body: Container(
         decoration: BoxDecoration(
           gradient: Theme.of(context).brightness == Brightness.dark
-              ? LinearGradient(
+              ? const LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [const Color(0xFF121212), Colors.black],
+                  colors: [Color(0xFF121212), Colors.black],
                 )
               : LinearGradient(
                   begin: Alignment.topLeft,
