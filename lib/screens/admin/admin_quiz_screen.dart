@@ -38,6 +38,7 @@ class _AdminQuizScreenState extends State<AdminQuizScreen> {
         'order': i, // Keep order
       });
     }
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Seeding Complete!')));
   }
 
@@ -217,10 +218,10 @@ class _AdminQuizScreenState extends State<AdminQuizScreen> {
                       } else {
                         await _firestore.collection('questions').add(data);
                       }
-                      if (mounted) Navigator.pop(context);
+                      if (context.mounted) Navigator.pop(context);
                     } catch (e) {
                       debugPrint("Error saving question: $e");
-                      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
                     }
                   },
                   style: ElevatedButton.styleFrom(

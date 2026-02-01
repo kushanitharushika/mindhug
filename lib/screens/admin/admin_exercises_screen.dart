@@ -149,9 +149,9 @@ class _AdminExercisesScreenState extends State<AdminExercisesScreen> {
                 } else {
                   await _firestore.collection('exercises').add(data);
                 }
-                if (mounted) Navigator.pop(context);
+                if (context.mounted) Navigator.pop(context);
               } catch (e) {
-                 if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                 if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
               }
             },
             style: ElevatedButton.styleFrom(
