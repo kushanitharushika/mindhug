@@ -1,10 +1,16 @@
-// ignore_for_file: dead_code
-
 import 'package:flutter/material.dart';
 import '../../core/storage/local_storage.dart';
 import '../../core/theme/app_colors.dart';
 import '../../widgets/mindhug_logo.dart';
-import '../../widgets/app_scaffold.dart';
+import '../../models/mood.dart';
+import '../../models/exercise.dart';
+import '../../models/music_track.dart';
+import '../../models/care_item.dart';
+import 'widgets/mood_check_in.dart';
+import 'widgets/daily_plan_card.dart';
+import 'widgets/music_player_widget.dart';
+import 'widgets/care_list_widget.dart';
+import 'widgets/exercise_library.dart';
 
 class ExercisesScreen extends StatefulWidget {
   const ExercisesScreen({super.key});
@@ -14,220 +20,300 @@ class ExercisesScreen extends StatefulWidget {
 }
 
 class _ExercisesScreenState extends State<ExercisesScreen> {
-  int score = 0;
-  String level = "";
+  Mood? _selectedMood;
+  List<Exercise> _todayPlan = [];
+  MusicTrack? _currentTrack;
+  List<CareItem> _careItems = [];
+  List<Exercise> _allExercises = [];
+  
+  // Mock Data Repositories (Ideally these would be in a service)
+  final List<Exercise> _repoExercises = [
+    Exercise(id: '1', title: 'Deep Breathing', description: 'Slow, deep breaths to calm down.', duration: '3 mins', type: ExerciseType.breathing, minScore: 0, maxScore: 100),
+    Exercise(id: '2', title: 'Box Breathing', description: 'Inhale 4s, hold 4s, exhale 4s, hold 4s.', duration: '4 mins', type: ExerciseType.breathing, minScore: 0, maxScore: 100),
+    Exercise(id: '3', title: 'Body Scan', description: 'Focus on each part of your body.', duration: '10 mins', type: ExerciseType.meditation, minScore: 20, maxScore: 80),
+    Exercise(id: '4', title: 'Quick Stretch', description: 'Release tension in neck and shoulders.', duration: '5 mins', type: ExerciseType.physical, minScore: 0, maxScore: 100),
+    Exercise(id: '5', title: 'Jumping Jacks', description: 'Get your heart rate up.', duration: '2 mins', type: ExerciseType.physical, minScore: 50, maxScore: 100),
+    Exercise(id: '6', title: 'Grounding 5-4-3-2-1', description: 'Engage your five senses.', duration: '5 mins', type: ExerciseType.grounding, minScore: 0, maxScore: 50),
+    Exercise(id: '7', title: 'Gratitude Journaling', description: 'Write down 3 things you are grateful for.', duration: '5 mins', type: ExerciseType.other, minScore: 30, maxScore: 100),
+  ];
 
+  final List<MusicTrack> _repoMusic = [
+    MusicTrack(id: 'm1', title: 'Forest Rain', artist: 'Nature Sounds', url: '', mood: MusicMood.calm, duration: '10:00'),
+    MusicTrack(id: 'm2', title: 'Upbeat Lo-Fi', artist: 'Chill Beats', url: '', mood: MusicMood.uplifting, duration: '3:00'),
+    MusicTrack(id: 'm3', title: 'Ocean Waves', artist: 'Deep Sleep', url: '', mood: MusicMood.sleep, duration: '15:00'),
+    MusicTrack(id: 'm4', title: 'Piano Focus', artist: 'Study Time', url: '', mood: MusicMood.focus, duration: '45:00'),
+  ];
+  
   @override
   void initState() {
     super.initState();
-    loadData();
+    _loadInitialData();
   }
 
-  Future<void> loadData() async {
-    final savedScore = await LocalStorage.getQuizScore();
-    final savedLevel = await LocalStorage.getMentalHealthLevel();
-
+  Future<void> _loadInitialData() async {
+    // Simulate loading
+    await Future.delayed(const Duration(milliseconds: 500));
+    
     setState(() {
-      score = savedScore ?? 0;
-      level = savedLevel ?? "";
+      _allExercises = _repoExercises;
+      _careItems = [
+        CareItem(id: 'c1', title: 'Drink Timer', description: 'Drink a glass of water', reminderTime: 'Hourly'),
+        CareItem(id: 'c2', title: 'Screen Break', description: 'Look away from screen for 20s', reminderTime: 'Every 20m'),
+        CareItem(id: 'c3', title: 'Posture Check', description: 'Sit up straight', reminderTime: 'Every 30m'),
+      ];
     });
   }
 
-  List<Map<String, String>> getExercises() {
-    if (score >= 40) {
-      return [
-        {
-          "title": "Gratitude Reflection",
-          "desc": "List 3 things you’re grateful for today.",
-        },
-        {
-          "title": "Mindful Breathing",
-          "desc": "Slowly breathe in and out for 3 minutes.",
-        },
-        {
-          "title": "Daily Stretching",
-          "desc": "5 minutes of full body stretches to energize.",
-        },
-        {
-          "title": "Positive Affirmations",
-          "desc": "Repeat 3 positive statements to yourself.",
-        },
-        {
-          "title": "Nature Walk",
-          "desc": "Spend 10 minutes walking outside, notice surroundings.",
-        },
-      ];
-    } else if (score >= 32) {
-      return [
-        {"title": "4-7-8 Breathing", "desc": "Inhale 4s, hold 7s, exhale 8s."},
-        {"title": "Journaling", "desc": "Write down your thoughts freely."},
-        {
-          "title": "Music Pause",
-          "desc": "Listen to calming music for 5 minutes.",
-        },
-        {
-          "title": "Mini Meditation",
-          "desc": "Sit quietly and focus on your breath for 3 mins.",
-        },
-        {
-          "title": "Gentle Stretching",
-          "desc": "Release tension from neck and shoulders.",
-        },
-      ];
-    } else if (score >= 24) {
-      return [
-        {
-          "title": "5-4-3-2-1 Grounding",
-          "desc": "Name 5 things you see, 4 feel, 3 hear.",
-        },
-        {"title": "Body Relaxation", "desc": "Relax each muscle group slowly."},
-        {
-          "title": "Deep Breathing",
-          "desc": "Inhale for 4s, exhale for 6s, repeat 5 times.",
-        },
-        {
-          "title": "Soothing Visualization",
-          "desc": "Imagine a safe, calm place for 5 minutes.",
-        },
-        {
-          "title": "Stretch & Release",
-          "desc": "Gentle stretching for arms, back, and legs.",
-        },
-      ];
+  void _onMoodSelected(Mood mood) {
+    setState(() {
+      _selectedMood = mood;
+      _generateLittlePlan(mood);
+      _selectMusicForMood(mood);
+    });
+  }
+
+  void _generateLittlePlan(Mood mood) {
+    // Simple logic: Pick 1 breathing, 1 physical based on mood
+    // For "Sad" or "Stressed", prioritize calming/grounding
+    // For "Happy" or "Energetic", prioritize physical/other
+    
+    List<Exercise> plan = [];
+    
+    if (MoodTypeHelper.stressOrSad.contains(mood.type)) { // pseudo-grouping
+       plan.add(_repoExercises.firstWhere((e) => e.type == ExerciseType.breathing, orElse: () => _repoExercises[0]));
+       plan.add(_repoExercises.firstWhere((e) => e.type == ExerciseType.grounding || e.type == ExerciseType.meditation, orElse: () => _repoExercises[2]));
+    } else if (mood.type == MoodType.energetic || mood.type == MoodType.happy) {
+       plan.add(_repoExercises.firstWhere((e) => e.type == ExerciseType.physical, orElse: () => _repoExercises[4]));
+       plan.add(_repoExercises.firstWhere((e) => e.type == ExerciseType.other, orElse: () => _repoExercises[6]));
     } else {
-      return [
-        {
-          "title": "Calm Breathing",
-          "desc": "Breathe gently and slowly for 3 minutes.",
-        },
-        {
-          "title": "Reach Out",
-          "desc": "Consider talking to someone you trust.",
-        },
-        {
-          "title": "Grounding Exercise",
-          "desc": "Focus on your senses to feel present.",
-        },
-        {
-          "title": "Guided Meditation",
-          "desc": "Listen to a short guided meditation.",
-        },
-        {
-          "title": "Gentle Movement",
-          "desc": "Simple stretching or walking to release tension.",
-        },
-      ];
+       // Default mix
+       plan.add(_repoExercises.firstWhere((e) => e.type == ExerciseType.breathing, orElse: () => _repoExercises[1]));
+       plan.add(_repoExercises.firstWhere((e) => e.type == ExerciseType.physical, orElse: () => _repoExercises[3]));
+    }
+    
+    _todayPlan = plan;
+  }
+
+  void _selectMusicForMood(Mood mood) {
+    // Map MoodType to MusicMood
+    MusicMood targetMusicMood;
+    switch (mood.type) {
+      case MoodType.stressed:
+      case MoodType.sad:
+      case MoodType.calm:
+        targetMusicMood = MusicMood.calm;
+        break;
+      case MoodType.energetic:
+      case MoodType.happy:
+        targetMusicMood = MusicMood.uplifting;
+        break;
+      case MoodType.tired:
+        targetMusicMood = MusicMood.sleep;
+        break;
+      default:
+        targetMusicMood = MusicMood.focus;
+    }
+    
+    try {
+      _currentTrack = _repoMusic.firstWhere((m) => m.mood == targetMusicMood);
+    } catch (_) {
+      _currentTrack = _repoMusic.first;
     }
   }
 
-  Color getColor() {
-    if (score >= 40) return Colors.teal.shade600;
-    if (score >= 32) return Colors.blue.shade600;
-    if (score >= 24) return Colors.amber.shade600;
-    return Colors.deepOrange.shade400;
+  void _toggleCareItem(String id, bool val) {
+    setState(() {
+      final index = _careItems.indexWhere((item) => item.id == id);
+      if (index != -1) {
+        _careItems[index] = _careItems[index].copyWith(isCompleted: val);
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final exercises = getExercises();
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textColor = isDark ? Colors.white : Colors.black87;
-    final subTextColor = isDark ? Colors.white70 : Colors.black54;
-    final appBarColor = isDark ? const Color(0xFF121212) : Colors.purple.shade50;
+    final textColor = isDark ? Colors.white : AppColors.textPrimary;
 
     return Scaffold(
-      // extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: appBarColor,
-        toolbarHeight: 90,
-        elevation: 0,
-        centerTitle: false,
-        title: MindHugLogo(size: 40),
-      ),
+      extendBodyBehindAppBar: true, 
       body: Container(
-         decoration: BoxDecoration(
+        decoration: BoxDecoration(
           gradient: isDark
-              ? LinearGradient(
+              ? const LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [const Color(0xFF121212), Colors.black],
+                  colors: [Color(0xFF121212), Color(0xFF000000)],
                 )
-              : LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Colors.purple.shade50, Colors.white],
-                ),
+              : AppColors.bgGradient,
         ),
-        child: ListView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(24, 24, 24, 30),
-          children: [
-              // Top section: level + icon
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
+        child: SafeArea(
+          child: CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              SliverAppBar(
+                automaticallyImplyLeading: false,
+                backgroundColor: Colors.transparent, // Transparent for gradient
+                floating: true,
+                elevation: 0,
+                toolbarHeight: 70,
+                title: Row(
+                  children: [
+                    const MindHugLogo(size: 32),
+                  ],
+                ),
+              ),
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate([
+                    const SizedBox(height: 10),
+                  
+                  // 1. Mood Check-in
+                  MoodCheckIn(
+                    selectedMood: _selectedMood,
+                    onMoodSelected: _onMoodSelected,
+                  ),
+                  
+                  const SizedBox(height: 32),
+                  
+                  // 2. Today's Little Plan
+                  if (_selectedMood != null) ...[
+                    FadeTransition(
+                      opacity: const AlwaysStoppedAnimation(1),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                "Your Plan",
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w700,
+                                  color: textColor,
+                                  letterSpacing: -0.5,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: _selectedMood!.color.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  "Based on ${_selectedMood!.label}",
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: _selectedMood!.color,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          
+                          ..._todayPlan.map((ex) => Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: DailyPlanCard(
+                              title: ex.title,
+                              description: "${ex.duration} • ${ex.type.name.toUpperCase()}",
+                              icon: _getIconForType(ex.type),
+                              color: _selectedMood!.color,
+                              onTap: () {
+                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Starting ${ex.title}...")));
+                              },
+                              onSkip: () {
+                                 setState(() {
+                                   _todayPlan.remove(ex);
+                                 });
+                              },
+                            ),
+                          )).toList(),
+                          
+                          if (_currentTrack != null) ...[
+                             const SizedBox(height: 12),
+                             MusicPlayerWidget(track: _currentTrack!),
+                          ],
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                  ],
+
+                  // 3. Care List
                   Text(
-                    level.isEmpty ? 'Exercises' : level,
+                    "Daily Care",
                     style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: getColor(),
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: textColor,
+                      letterSpacing: -0.5,
                     ),
                   ),
-                  Icon(Icons.self_improvement, color: getColor(), size: 28),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                "Recommended for you",
-                style: TextStyle(fontSize: 14, color: subTextColor),
-              ),
-              const SizedBox(height: 16),
-              
-              // Exercise list rendered as children of Column
-              ...exercises.map((exercise) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 6),
-                  child: Card(
-                    color: isDark ? AppColors.surfaceDark : Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                  const SizedBox(height: 16),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: isDark ? AppColors.surfaceDark : Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                         BoxShadow(
+                          color: Colors.black.withOpacity(0.03),
+                          blurRadius: 15,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
                     ),
-                    elevation: 2,
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 10,
-                      ),
-                      title: Text(
-                        exercise["title"]!,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 15,
-                          color: textColor,
-                        ),
-                      ),
-                      subtitle: Text(
-                        exercise["desc"]!,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: subTextColor,
-                        ),
-                      ),
-                      trailing: Icon(
-                        Icons.play_circle_fill,
-                        color: getColor(),
-                        size: 24,
-                      ),
-                      onTap: () {},
+                    child: CareListWidget(
+                      items: _careItems,
+                      onToggle: _toggleCareItem,
                     ),
                   ),
-                );
-              }).toList(),
+                  
+                  const SizedBox(height: 32),
+
+                  // 4. Exercise Library
+                  Text(
+                    "Explore Library",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: textColor,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                   const SizedBox(height: 16),
+                  ExerciseLibraryWidget(
+                    exercises: _allExercises,
+                    onExerciseTap: (ex) {
+                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Selected ${ex.title}")));
+                    },
+                  ),
+                  const SizedBox(height: 100), // Bottom padding for nav bar
+                  ]),
+                ),
+              ),
             ],
+          ),
         ),
       ),
     );
   }
+  
+  IconData _getIconForType(ExerciseType type) {
+    switch (type) {
+      case ExerciseType.breathing: return Icons.air;
+      case ExerciseType.physical: return Icons.fitness_center;
+      case ExerciseType.meditation: return Icons.self_improvement;
+      case ExerciseType.grounding: return Icons.nature;
+      default: return Icons.play_circle_outline;
+    }
+  }
+}
+
+extension MoodTypeHelper on MoodType {
+  // Helper to group moods for logic if needed
+  static const stressOrSad = [MoodType.stressed, MoodType.sad, MoodType.tired];
 }

@@ -1,5 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'quiz_data.dart';
+import 'quiz_data.dart'; // Keep for fallback if verification fails
 import '../../models/quiz_question.dart';
 import 'quiz_results_screen.dart';
 import '../../core/storage/local_storage.dart';
@@ -16,14 +17,46 @@ class _MentalHealthQuizState extends State<MentalHealthQuiz> {
   int currentQuestion = 0;
   int totalScore = 0;
   List<QuizQuestion> _selectedQuestions = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    // Shuffle and pick 12 questions
-    final allQuestions = List<QuizQuestion>.from(quizQuestions);
-    allQuestions.shuffle();
-    _selectedQuestions = allQuestions.take(12).toList();
+    _loadQuestions();
+  }
+
+  Future<void> _loadQuestions() async {
+    try {
+      final snapshot = await FirebaseFirestore.instance.collection('questions').get();
+      
+      List<QuizQuestion> allQuestions = [];
+      
+      if (snapshot.docs.isNotEmpty) {
+        allQuestions = snapshot.docs.map((doc) {
+          final data = doc.data();
+          return QuizQuestion(
+            question: data['question'] ?? 'Unknown Question',
+            options: List<String>.from(data['options'] ?? []),
+            scores: List<int>.from(data['scores'] ?? []),
+          );
+        }).toList();
+      } else {
+        // Fallback to static data if DB is empty (e.g. before seeding)
+        allQuestions = List<QuizQuestion>.from(quizQuestions);
+      }
+
+      // Shuffle and pick 12 (or fewer if not enough)
+      allQuestions.shuffle();
+      _selectedQuestions = allQuestions.take(12).toList();
+    } catch (e) {
+      debugPrint("Error loading questions: $e");
+      // Fallback on error
+      final allQuestions = List<QuizQuestion>.from(quizQuestions);
+      allQuestions.shuffle();
+      _selectedQuestions = allQuestions.take(12).toList();
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   void answerQuestion(int score) {
@@ -42,12 +75,14 @@ class _MentalHealthQuizState extends State<MentalHealthQuiz> {
 
     await LocalStorage.saveQuizResult(score: totalScore, level: level);
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (_) => QuizResultScreen(score: totalScore, level: level),
-      ),
-    );
+    if (mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => QuizResultScreen(score: totalScore, level: level),
+        ),
+      );
+    }
   }
 
   String getMentalHealthLevel(int score) {
@@ -64,8 +99,21 @@ class _MentalHealthQuizState extends State<MentalHealthQuiz> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+       return const AppScaffold(
+         child: Center(child: CircularProgressIndicator()),
+       );
+    }
+
+    if (_selectedQuestions.isEmpty) {
+      // Should not happen with fallback, but safe check
+       return const AppScaffold(
+         child: Center(child: Text("No questions available. Please try again later.")),
+       );
+    }
+
     if (currentQuestion >= _selectedQuestions.length) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const AppScaffold(child: Center(child: CircularProgressIndicator()));
     }
 
     final question = _selectedQuestions[currentQuestion];

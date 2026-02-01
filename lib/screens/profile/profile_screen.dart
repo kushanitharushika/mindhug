@@ -11,6 +11,7 @@ import '../../services/auth_service.dart';
 import '../auth/auth_wrapper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../admin/admin_dashboard.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -23,6 +24,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String _name = 'John Doe';
   String _email = 'john.doe@example.com';
   String? _avatarPath;
+  bool _isAdmin = false;
 
   @override
   void initState() {
@@ -34,6 +36,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
+        final role = await AuthService().getUserRole();
         final doc = await FirebaseFirestore.instance
             .collection('users')
             .doc(user.uid)
@@ -44,7 +47,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
            setState(() {
              _name = data['Name'] ?? 'MindHug User';
              _email = data['Email'] ?? user.email ?? '';
-             // _avatarPath = data['avatar']; // Uncomment if you save avatar path in Firestore
+             _isAdmin = role == 'admin';
            });
         }
       } else {
@@ -234,6 +237,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       isDark: isDark,
                     ),
                     const Divider(height: 1),
+                    if (_isAdmin) ...[
+                      _SettingsTile(
+                        icon: Icons.admin_panel_settings_outlined,
+                        title: 'Admin Dashboard',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const AdminDashboard()),
+                          );
+                        },
+                        isDark: isDark,
+                      ),
+                      const Divider(height: 1),
+                    ],
                     _SettingsTile(
                       icon: Icons.notifications_outlined,
                       title: 'Notifications',
