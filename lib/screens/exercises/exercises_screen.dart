@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../core/storage/local_storage.dart';
 import '../../core/theme/app_colors.dart';
 import '../../widgets/mindhug_logo.dart';
 import '../../models/mood.dart';
@@ -151,7 +150,7 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
           child: CustomScrollView(
             physics: const BouncingScrollPhysics(),
             slivers: [
-              SliverAppBar(
+              const SliverAppBar(
                 automaticallyImplyLeading: false,
                 backgroundColor: Colors.transparent, // Transparent for gradient
                 floating: true,
@@ -159,7 +158,7 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
                 toolbarHeight: 70,
                 title: Row(
                   children: [
-                    const MindHugLogo(size: 32),
+                    MindHugLogo(size: 32),
                   ],
                 ),
               ),
@@ -231,7 +230,7 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
                                  });
                               },
                             ),
-                          )).toList(),
+                          )),
                           
                           if (_currentTrack != null) ...[
                              const SizedBox(height: 12),

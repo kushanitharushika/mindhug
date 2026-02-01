@@ -17,9 +17,9 @@ class ExerciseLibraryWidget extends StatelessWidget {
      final isDark = Theme.of(context).brightness == Brightness.dark;
 
      if (exercises.isEmpty) {
-       return Center(
+       return const Center(
          child: Padding(
-           padding: const EdgeInsets.all(24.0),
+           padding: EdgeInsets.all(24.0),
            child: Text("No exercises found", style: TextStyle(color: Colors.grey)),
          ),
        );

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/custom_text_field.dart';
 import '../../core/widgets/primary_button.dart';
-import '../../widgets/bottom_nav.dart';
 import '../../widgets/mindhug_logo.dart';
 import 'forgot_password_screen.dart';
 import 'signup_screen.dart';
@@ -88,7 +87,7 @@ class _LoginScreenState extends State<LoginScreen>
           Container(
             decoration: BoxDecoration(
               gradient: isDark 
-                  ? LinearGradient(
+                  ? const LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [AppColors.backgroundDark, Colors.black],
@@ -299,7 +298,7 @@ class _LoginScreenState extends State<LoginScreen>
                                         context,
                                         MaterialPageRoute(builder: (_) => const SignupScreen()),
                                       ),
-                                      child: Text(
+                                      child: const Text(
                                         'Create Account',
                                         style: TextStyle(
                                           color: AppColors.primary,

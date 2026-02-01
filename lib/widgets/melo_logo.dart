@@ -4,8 +4,7 @@ class MeloLogo extends StatefulWidget {
   final double size;
   final bool showText;
 
-  const MeloLogo({Key? key, this.size = 56, this.showText = false})
-    : super(key: key);
+  const MeloLogo({super.key, this.size = 56, this.showText = false});
 
   @override
   State<MeloLogo> createState() => _MeloLogoState();
@@ -82,7 +81,7 @@ class _MeloLogoState extends State<MeloLogo>
             mainAxisSize: MainAxisSize.min,
             children: [
               ShaderMask(
-                shaderCallback: (bounds) => LinearGradient(
+                shaderCallback: (bounds) => const LinearGradient(
                   colors: [Colors.purple, Colors.pink],
                 ).createShader(bounds),
                 child: const Text(
