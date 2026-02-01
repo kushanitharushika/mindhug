@@ -1,10 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import '../../models/quiz_question.dart';
-// Note: We will dynamically load questions, but for seeding we might need to copy-paste the data 
-// or import it if the file structure allows. 
-// For now, I will include the seeding logic directly here with the data to ensure it works 
-// without circular dependencies or import issues if I plan to delete quiz_data.dart later.
+import '../../core/theme/app_colors.dart';
 
 class AdminQuizScreen extends StatefulWidget {
   const AdminQuizScreen({super.key});
@@ -33,14 +29,9 @@ class _AdminQuizScreenState extends State<AdminQuizScreen> {
       "options": ["Almost everyday", "Sometimes", "Rarely", "Never"],
       "scores": [4, 3, 2, 1],
     },
-    // ... I will add a few for testing, and we can add the rest or full list 
-    // But to save context I'll just add the first few and a "Bulk Upload" function if needed.
-    // actually let's just make it editable so they can add more.
   ];
 
   Future<void> _seedDatabase() async {
-    // Check if empty first to avoid duplicates? Or user can just delete
-    // For now, just add them.
     for (var i = 0; i < _seedQuestions.length; i++) {
       await _firestore.collection('questions').add({
         ..._seedQuestions[i],
@@ -84,7 +75,8 @@ class _AdminQuizScreenState extends State<AdminQuizScreen> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: Text(isEditing ? 'Edit Question' : 'Add Question'),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+              title: Text(isEditing ? 'Edit Question' : 'Add Question', style: const TextStyle(fontWeight: FontWeight.bold)),
               content: SizedBox(
                 width: double.maxFinite,
                 child: SingleChildScrollView(
@@ -93,22 +85,32 @@ class _AdminQuizScreenState extends State<AdminQuizScreen> {
                     children: [
                       TextField(
                         controller: questionController,
-                        decoration: const InputDecoration(labelText: 'Question'),
+                        decoration: InputDecoration(
+                          labelText: 'Question',
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          filled: true,
+                          fillColor: Colors.grey.withOpacity(0.05),
+                        ),
                         maxLines: 2,
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 16),
                       TextField(
                         controller: orderController,
-                        decoration: const InputDecoration(labelText: 'Order (Number)'),
+                        decoration: InputDecoration(
+                          labelText: 'Order (Number)',
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          filled: true,
+                          fillColor: Colors.grey.withOpacity(0.05),
+                        ),
                         keyboardType: TextInputType.number,
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 24),
                       const Row(
                         children: [
                           Expanded(flex: 2, child: Text("Option", style: TextStyle(fontWeight: FontWeight.bold))),
                           SizedBox(width: 10),
                           Expanded(flex: 1, child: Text("Score", style: TextStyle(fontWeight: FontWeight.bold))),
-                          SizedBox(width: 30), // Space for delete icon
+                          SizedBox(width: 32),
                         ],
                       ),
                       const Divider(),
@@ -124,8 +126,9 @@ class _AdminQuizScreenState extends State<AdminQuizScreen> {
                                 child: TextField(
                                   controller: item['option'],
                                   decoration: const InputDecoration(
-                                    hintText: 'Answer text',
+                                    hintText: 'Answer',
                                     isDense: true,
+                                    border: UnderlineInputBorder(),
                                   ),
                                 ),
                               ),
@@ -137,12 +140,13 @@ class _AdminQuizScreenState extends State<AdminQuizScreen> {
                                   decoration: const InputDecoration(
                                     hintText: 'Pts',
                                     isDense: true,
+                                    border: UnderlineInputBorder(),
                                   ),
                                   keyboardType: TextInputType.number,
                                 ),
                               ),
                               IconButton(
-                                icon: const Icon(Icons.remove_circle, color: Colors.red),
+                                icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
                                 onPressed: () {
                                   setState(() {
                                     optionsList.removeAt(index);
@@ -153,25 +157,35 @@ class _AdminQuizScreenState extends State<AdminQuizScreen> {
                           ),
                         );
                       }),
-                      if (optionsList.length < 4)
-                        TextButton.icon(
-                          onPressed: () {
+                      const SizedBox(height: 12),
+                      OutlinedButton.icon(
+                        onPressed: () {
+                          if (optionsList.length < 5) {
                             setState(() {
                               optionsList.add({
                                 "option": TextEditingController(),
                                 "score": TextEditingController(text: '0'),
                               });
                             });
-                          },
-                          icon: const Icon(Icons.add),
-                          label: const Text("Add Option"),
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Max 5 options allowed')));
+                          }
+                        },
+                        icon: const Icon(Icons.add),
+                        label: const Text("Add Option"),
+                        style: OutlinedButton.styleFrom(
+                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),
+                      ),
                     ],
                   ),
                 ),
               ),
               actions: [
-                TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+                TextButton(
+                  onPressed: () => Navigator.pop(context), 
+                  child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+                ),
                 ElevatedButton(
                   onPressed: () async {
                     if (questionController.text.isEmpty) {
@@ -187,9 +201,7 @@ class _AdminQuizScreenState extends State<AdminQuizScreen> {
                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('At least one option is required')));
                        return;
                     }
-
-                    // Trim scores to match valid options length if needed, 
-                    // though UI logic above keeps them synced.
+                    
                     final validScores = scores.sublist(0, options.length);
 
                     final data = {
@@ -211,6 +223,11 @@ class _AdminQuizScreenState extends State<AdminQuizScreen> {
                       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
                     }
                   },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
                   child: const Text('Save'),
                 ),
               ],
@@ -223,23 +240,33 @@ class _AdminQuizScreenState extends State<AdminQuizScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Scaffold(
+      backgroundColor: Colors.transparent, // Handled by Dashboard
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddEditDialog(),
-        child: const Icon(Icons.add),
+        backgroundColor: AppColors.primary,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
       body: Column(
         children: [
-          // Seed Button (Temporary)
+          // Header Actions
           Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: ElevatedButton.icon(
-              onPressed: _seedDatabase, 
-              icon: const Icon(Icons.cloud_upload),
-              label: const Text("Seed Sample Questions (Dev Only)"),
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton.icon(
+                  onPressed: _seedDatabase, 
+                  icon: const Icon(Icons.cloud_upload_outlined, size: 18),
+                  label: const Text("Seed Questions"),
+                  style: TextButton.styleFrom(foregroundColor: Colors.orange),
+                ),
+              ],
             ),
           ),
+          
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream: _firestore.collection('questions').orderBy('order').snapshots(),
@@ -248,31 +275,100 @@ class _AdminQuizScreenState extends State<AdminQuizScreen> {
                 if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
 
                 final docs = snapshot.data?.docs ?? [];
-                if (docs.isEmpty) return const Center(child: Text('No questions found. Add one!'));
+                if (docs.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.quiz_outlined, size: 48, color: Colors.grey.shade400),
+                        const SizedBox(height: 16),
+                        Text('No questions found.', style: TextStyle(color: Colors.grey.shade600)),
+                      ],
+                    ),
+                  );
+                }
 
-                return ListView.builder(
+                return ListView.separated(
+                  padding: const EdgeInsets.fromLTRB(24, 8, 24, 80),
                   itemCount: docs.length,
+                  separatorBuilder: (c, i) => const SizedBox(height: 16),
                   itemBuilder: (context, index) {
                     final data = docs[index].data() as Map<String, dynamic>;
                     final question = data['question'] ?? 'No Question';
                     final options = List<String>.from(data['options'] ?? []);
 
-                    return Card(
-                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      child: ListTile(
-                        leading: CircleAvatar(child: Text(data['order'].toString())),
-                        title: Text(question),
-                        subtitle: Text("${options.length} options"),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.edit, color: Colors.blue),
-                              onPressed: () => _showAddEditDialog(doc: docs[index]),
+                    return Container(
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF2C2C2C) : Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Theme(
+                        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                        child: ExpansionTile(
+                          leading: CircleAvatar(
+                            backgroundColor: AppColors.secondary.withOpacity(0.1),
+                            child: Text(
+                              "${data['order']}", 
+                              style: const TextStyle(color: AppColors.secondary, fontWeight: FontWeight.bold),
                             ),
-                            IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.red),
-                              onPressed: () => _deleteQuestion(docs[index].id),
+                          ),
+                          title: Text(
+                            question,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.white : const Color(0xFF2D3142),
+                            ),
+                          ),
+                          subtitle: Text(
+                            "${options.length} options",
+                            style: TextStyle(fontSize: 12, color: isDark ? Colors.white54 : Colors.grey),
+                          ),
+                          childrenPadding: const EdgeInsets.all(16),
+                          children: [
+                            const Divider(),
+                            ...options.asMap().entries.map((e) => Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.circle, size: 8, color: Colors.grey),
+                                  const SizedBox(width: 8),
+                                  Expanded(child: Text(e.value)),
+                                ],
+                              ),
+                            )),
+                            const SizedBox(height: 16),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                OutlinedButton.icon(
+                                  onPressed: () => _showAddEditDialog(doc: docs[index]),
+                                  icon: const Icon(Icons.edit, size: 16),
+                                  label: const Text("Edit"),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: Colors.blue,
+                                    side: const BorderSide(color: Colors.blue),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                OutlinedButton.icon(
+                                  onPressed: () => _deleteQuestion(docs[index].id),
+                                  icon: const Icon(Icons.delete, size: 16),
+                                  label: const Text("Delete"),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: Colors.red,
+                                    side: const BorderSide(color: Colors.red),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),

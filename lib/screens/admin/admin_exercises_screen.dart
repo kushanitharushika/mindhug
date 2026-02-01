@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import '../../core/theme/app_colors.dart';
 
 class AdminExercisesScreen extends StatefulWidget {
   const AdminExercisesScreen({super.key});
@@ -52,46 +53,59 @@ class _AdminExercisesScreenState extends State<AdminExercisesScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(isEditing ? 'Edit Exercise' : 'Add Exercise'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Text(isEditing ? 'Edit Exercise' : 'Add Exercise', style: const TextStyle(fontWeight: FontWeight.bold)),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: titleController,
-                decoration: const InputDecoration(labelText: 'Title'),
+                decoration: InputDecoration(
+                  labelText: 'Title',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  filled: true,
+                  fillColor: Colors.grey.withOpacity(0.05),
+                ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 16),
               TextField(
                 controller: descController,
-                decoration: const InputDecoration(labelText: 'Description'),
+                decoration: InputDecoration(
+                  labelText: 'Description',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  filled: true,
+                  fillColor: Colors.grey.withOpacity(0.05),
+                ),
                 maxLines: 3,
               ),
-              const SizedBox(height: 15),
+              const SizedBox(height: 24),
               Row(
                 children: [
                   Expanded(
                     child: TextField(
                       controller: minScoreController,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'Min Score',
-                        border: OutlineInputBorder(),
-                        isDense: true,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        filled: true,
+                        fillColor: Colors.grey.withOpacity(0.05),
                       ),
                       keyboardType: TextInputType.number,
                     ),
                   ),
                   const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 10),
-                    child: Text("-"),
+                    child: Text("-", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
                   ),
                   Expanded(
                     child: TextField(
                       controller: maxScoreController,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'Max Score',
-                        border: OutlineInputBorder(),
-                        isDense: true,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        filled: true,
+                        fillColor: Colors.grey.withOpacity(0.05),
                       ),
                       keyboardType: TextInputType.number,
                     ),
@@ -102,7 +116,10 @@ class _AdminExercisesScreenState extends State<AdminExercisesScreen> {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context), 
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+          ),
           ElevatedButton(
             onPressed: () async {
               final title = titleController.text.trim();
@@ -137,6 +154,11 @@ class _AdminExercisesScreenState extends State<AdminExercisesScreen> {
                  if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
               }
             },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
             child: const Text('Save'),
           ),
         ],
@@ -146,22 +168,32 @@ class _AdminExercisesScreenState extends State<AdminExercisesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
+      backgroundColor: Colors.transparent, // Handled by Dashboard
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddEditDialog(),
-        child: const Icon(Icons.add),
+        backgroundColor: AppColors.primary,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: ElevatedButton.icon(
-              onPressed: _seedDatabase, 
-              icon: const Icon(Icons.cloud_upload),
-              label: const Text("Seed Exercises (Dev Only)"),
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton.icon(
+                  onPressed: _seedDatabase, 
+                  icon: const Icon(Icons.cloud_upload_outlined, size: 18),
+                  label: const Text("Seed Exercises"),
+                  style: TextButton.styleFrom(foregroundColor: Colors.orange),
+                ),
+              ],
             ),
           ),
+          
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream: _firestore.collection('exercises').orderBy('minScore').snapshots(),
@@ -172,31 +204,75 @@ class _AdminExercisesScreenState extends State<AdminExercisesScreen> {
                 final docs = snapshot.data?.docs ?? [];
                 if (docs.isEmpty) return const Center(child: Text('No exercises found. Add one!'));
 
-                return ListView.builder(
+                return ListView.separated(
+                  padding: const EdgeInsets.fromLTRB(24, 8, 24, 80),
                   itemCount: docs.length,
+                  separatorBuilder: (c, i) => const SizedBox(height: 16),
                   itemBuilder: (context, index) {
                     final data = docs[index].data() as Map<String, dynamic>;
                     
-                    return Card(
-                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    return Container(
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF2C2C2C) : Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
                       child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: Colors.teal,
-                          child: Text("${data['minScore']}"),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        leading: Container(
+                          width: 50,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            color: AppColors.secondary.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            "${data['minScore']}",
+                            style: const TextStyle(
+                              color: AppColors.secondary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
+                          ),
                         ),
-                        title: Text(data['title'] ?? 'No Title'),
-                        subtitle: Text(data['desc'] ?? ''),
+                        title: Text(
+                          data['title'] ?? 'No Title',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: isDark ? Colors.white : const Color(0xFF2D3142),
+                          ),
+                        ),
+                        subtitle: Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(data['desc'] ?? '', style: TextStyle(color: isDark ? Colors.white60 : Colors.grey.shade600)),
+                              const SizedBox(height: 4),
+                              Text(
+                                "Range: ${data['minScore']} - ${data['maxScore']}",
+                                style: TextStyle(fontSize: 10, color: isDark ? Colors.white38 : Colors.grey.shade400, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        ),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text("${data['minScore']}-${data['maxScore']}", style: TextStyle(color: Colors.grey)),
-                            const SizedBox(width: 8),
                             IconButton(
-                              icon: const Icon(Icons.edit, color: Colors.blue),
+                              icon: const Icon(Icons.edit, color: Colors.blue, size: 20),
                               onPressed: () => _showAddEditDialog(doc: docs[index]),
                             ),
                             IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.red),
+                              icon: const Icon(Icons.delete, color: Colors.red, size: 20),
                               onPressed: () => _deleteExercise(docs[index].id),
                             ),
                           ],

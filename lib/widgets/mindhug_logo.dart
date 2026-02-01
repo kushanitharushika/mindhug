@@ -69,23 +69,23 @@ class _MindHugLogoState extends State<MindHugLogo>
             ShaderMask(
               shaderCallback: (bounds) =>
                   LinearGradient(colors: [Colors.purple, Colors.pink]).createShader(bounds),
-              child: const Text(
+              child: Text(
                 'MindHug',
                 style: TextStyle(
-                  fontSize: 28,
+                  fontSize: widget.size * 0.5, // Scaled size (e.g. 28 for size 56)
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
               ),
             ),
-            const SizedBox(height: 2),
+            SizedBox(height: widget.size * 0.04),
             Text(
               'A little comfort, anytime',
               style: TextStyle(
                 color: Theme.of(context).brightness == Brightness.dark 
                     ? Colors.grey[400] 
                     : Colors.grey[600],
-                fontSize: 12,
+                fontSize: widget.size * 0.22, // Scaled size (e.g. ~12 for size 56)
               ),
             ),
           ],
