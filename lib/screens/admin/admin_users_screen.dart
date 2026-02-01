@@ -102,7 +102,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                 separatorBuilder: (c, i) => const SizedBox(height: 12),
                 itemBuilder: (context, index) {
                   final user = users[index].data() as Map<String, dynamic>;
-                  final userId = users[index].id;
+
                   
                   final name = user['Name'] ?? 'Unknown Name';
                   final email = user['Email'] ?? 'No Email';
