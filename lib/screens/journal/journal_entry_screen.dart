@@ -21,17 +21,21 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
   List<String> _selectedImages = [];
   final ImagePicker _picker = ImagePicker();
   
-  static const Map<String, String> _moods = {
-    '😄': 'Rad',
-    '😊': 'Happy',
-    '😐': 'Meh',
-    '😔': 'Sad',
-    '😢': 'Awful',
-    '😡': 'Angry',
-  };
+  static const List<Map<String, dynamic>> _moodOptions = [
+    {'label': 'Rad', 'icon': Icons.star_rounded, 'color': Colors.amber},
+    {'label': 'Happy', 'icon': Icons.sentiment_very_satisfied, 'color': Colors.orange},
+    {'label': 'Meh', 'icon': Icons.sentiment_neutral, 'color': Colors.grey},
+    {'label': 'Sad', 'icon': Icons.sentiment_dissatisfied, 'color': Colors.blue},
+    {'label': 'Awful', 'icon': Icons.sentiment_very_dissatisfied, 'color': Colors.indigo},
+    {'label': 'Angry', 'icon': Icons.mood_bad, 'color': Colors.red},
+  ];
+
+  // ... (rest of the file)
+
+
 
   final List<String> _tags = [
-    'Study', 'Exams', 'Social', 'Crushing', 'Family', 'Food', 'Travel', 'Sleep', 'Gaming', 'Music'
+    'Study', 'Social', 'Family', 'Sleep'
   ];
 
   static const List<String> _prompts = [
@@ -48,7 +52,7 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
     super.initState();
     _textController = TextEditingController(text: widget.entry?.text ?? '');
     _titleController = TextEditingController(text: widget.entry?.title ?? '');
-    _selectedMood = widget.entry?.mood ?? _moods.keys.first;
+    _selectedMood = widget.entry?.mood ?? _moodOptions.first['label'] as String;
     _selectedTags = List.from(widget.entry?.tags ?? []);
     _selectedImages = List.from(widget.entry?.images ?? []);
     
@@ -209,36 +213,57 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
                           SingleChildScrollView(
                             scrollDirection: Axis.horizontal,
                             clipBehavior: Clip.none,
+
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
-                              children: _moods.entries.map((entry) {
-                                final isSelected = _selectedMood == entry.key;
+                              children: _moodOptions.map((option) {
+                                final label = option['label'] as String;
+                                final icon = option['icon'] as IconData;
+                                final color = option['color'] as Color;
+                                final isSelected = _selectedMood == label;
+
                                 return GestureDetector(
-                                  onTap: () => setState(() => _selectedMood = entry.key),
-                                  child: AnimatedContainer(
-                                    duration: const Duration(milliseconds: 200),
-                                    margin: const EdgeInsets.symmetric(horizontal: 10),
+                                  onTap: () => setState(() => _selectedMood = label),
+                                  child: Container(
+                                    margin: const EdgeInsets.symmetric(horizontal: 8),
                                     child: Column(
                                       children: [
-                                        AnimatedScale(
-                                          scale: isSelected ? 1.25 : 0.9, // More dramatic scale
+                                        AnimatedContainer(
                                           duration: const Duration(milliseconds: 200),
-                                          child: Text(entry.key, style: const TextStyle(fontSize: 36)),
+                                          padding: const EdgeInsets.all(16),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius: BorderRadius.circular(20),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black.withOpacity(0.05),
+                                                blurRadius: 10,
+                                                offset: const Offset(0, 4),
+                                              ),
+                                              if (isSelected)
+                                                BoxShadow(
+                                                  color: color.withOpacity(0.4),
+                                                  blurRadius: 12,
+                                                  spreadRadius: 2,
+                                                ),
+                                            ],
+                                            border: isSelected 
+                                                ? Border.all(color: color, width: 2)
+                                                : Border.all(color: Colors.transparent, width: 2),
+                                          ),
+                                          child: Icon(
+                                            icon,
+                                            color: color,
+                                            size: 32,
+                                          ),
                                         ),
                                         const SizedBox(height: 8),
-                                        AnimatedOpacity(
-                                          duration: const Duration(milliseconds: 200),
-                                          opacity: isSelected ? 1.0 : 0.0,
-                                          child: Container(
-                                            width: 5,
-                                            height: 5,
-                                            decoration: BoxDecoration(
-                                              color: accentColor,
-                                              shape: BoxShape.circle,
-                                              boxShadow: [
-                                                BoxShadow(color: accentColor.withOpacity(0.5), blurRadius: 4),
-                                              ]
-                                            ),
+                                        Text(
+                                          label,
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                                            color: isSelected ? color : Colors.grey,
                                           ),
                                         ),
                                       ],
@@ -247,6 +272,7 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
                                 );
                               }).toList(),
                             ),
+
                           ),
 
                           const SizedBox(height: 24),
@@ -273,10 +299,18 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
                                     duration: const Duration(milliseconds: 200),
                                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                                     decoration: BoxDecoration(
-                                      color: isSelected ? accentColor : Colors.transparent, 
+                                      color: isSelected ? accentColor : Colors.white, 
                                       borderRadius: BorderRadius.circular(30),
+                                      boxShadow: [
+                                        if (!isSelected)
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(0.05),
+                                            blurRadius: 4,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                      ],
                                       border: Border.all(
-                                        color: isSelected ? accentColor : (isDark ? Colors.white24 : Colors.black12),
+                                        color: isSelected ? accentColor : Colors.grey.shade200,
                                         width: 1.5,
                                       ),
                                     ),
@@ -285,7 +319,7 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
                                       style: TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.w600,
-                                        color: isSelected ? Colors.white : textColor.withOpacity(0.6),
+                                        color: isSelected ? Colors.white : Colors.grey[600],
                                         letterSpacing: 0.3,
                                       ),
                                     ),
