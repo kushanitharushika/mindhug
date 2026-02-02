@@ -36,18 +36,13 @@ class _SignupScreenState extends State<SignupScreen> {
         phoneNumber: phoneCtrl.text.trim(),
       );
       
-      // Check quiz completion
-      final quizCompleted = await LocalStorage.isQuizCompleted();
-
       if (!mounted) return;
 
-      // Navigate based on logic
+      // Always navigate to Quiz for new users
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (_) => quizCompleted
-              ? const BottomNav()
-              : const MentalHealthQuiz(),
+          builder: (_) => const MentalHealthQuiz(),
         ),
       );
     } catch (e) {

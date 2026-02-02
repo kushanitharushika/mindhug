@@ -34,16 +34,25 @@ class _HomeScreenState extends State<HomeScreen> {
       final user = FirebaseAuth.instance.currentUser;
       String name = "Friend";
       
+      final savedScore = await LocalStorage.getQuizScore();
+      final savedLevel = await LocalStorage.getMentalHealthLevel();
+      
+      int displayScore = savedScore;
+      String displayLevel = savedLevel ?? "Not Checked";
+
       if (user != null) {
         final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
         if (doc.exists) {
-          name = doc.data()?['Name'] ?? "Friend";
+          final data = doc.data()!;
+          name = data['Name'] ?? "Friend";
+          
+          // Use Firestore data if available (cloud sync)
+          if (data.containsKey('latestQuizScore')) {
+             displayScore = data['latestQuizScore'];
+             displayLevel = data['latestQuizLevel'] ?? displayLevel;
+          }
         }
       }
-
-      // Fallback or legacy load
-      final savedScore = await LocalStorage.getQuizScore();
-      final savedLevel = await LocalStorage.getMentalHealthLevel();
 
       if (mounted) {
         setState(() {
@@ -52,8 +61,8 @@ class _HomeScreenState extends State<HomeScreen> {
           if (_name.contains(' ')) {
             _name = _name.split(' ')[0];
           }
-          _score = savedScore;
-          _level = savedLevel ?? "Not Checked";
+          _score = displayScore;
+          _level = displayLevel;
           _isLoading = false;
         });
       }
@@ -357,8 +366,9 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 20),
           ElevatedButton(
-            onPressed: () {
-               Navigator.push(context, MaterialPageRoute(builder: (_) => const MentalHealthQuiz()));
+            onPressed: () async {
+               await Navigator.push(context, MaterialPageRoute(builder: (_) => const MentalHealthQuiz()));
+               _loadData(); // Refresh home data after returning
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.white,

@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'quiz_data.dart'; // Keep for fallback if verification fails
 import '../../models/quiz_question.dart';
 import 'quiz_results_screen.dart';
@@ -73,7 +74,22 @@ class _MentalHealthQuizState extends State<MentalHealthQuiz> {
   void showResult() async {
     final level = getMentalHealthLevel(totalScore);
 
+    // Save to Local Storage
     await LocalStorage.saveQuizResult(score: totalScore, level: level);
+
+    // Save to Firestore
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+          'latestQuizScore': totalScore,
+          'latestQuizLevel': level,
+          'lastQuizDate': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+      }
+    } catch (e) {
+      debugPrint("Error saving quiz result to Firestore: $e");
+    }
 
     if (mounted) {
       Navigator.pushReplacement(

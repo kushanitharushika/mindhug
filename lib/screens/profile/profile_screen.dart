@@ -20,8 +20,8 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  String _name = 'John Doe';
-  String _email = 'john.doe@example.com';
+  String _name = 'Loading...';
+  String _email = '';
   String? _avatarPath;
   bool _isAdmin = false;
 
@@ -35,6 +35,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
+        // Initialize with Auth data if available
+        if (mounted) {
+          setState(() {
+            if (_name == 'Loading...' && user.displayName != null) {
+               _name = user.displayName!;
+            }
+            if (_email.isEmpty && user.email != null) {
+               _email = user.email!;
+            }
+          });
+        }
+
         final role = await AuthService().getUserRole();
         final doc = await FirebaseFirestore.instance
             .collection('users')
@@ -44,7 +56,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         if (doc.exists && mounted) {
            final data = doc.data()!;
            setState(() {
-             _name = data['Name'] ?? 'MindHug User';
+             _name = data['Name'] ?? user.displayName ?? 'MindHug User';
              _email = data['Email'] ?? user.email ?? '';
              _isAdmin = role == 'admin';
            });
@@ -54,8 +66,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         final data = await LocalStorage.getUserProfile();
         if (mounted) {
           setState(() {
-            _name = data['name']!;
-            _email = data['email']!;
+            _name = data['name'] ?? 'Guest';
+            _email = data['email'] ?? '';
             _avatarPath = data['avatar'];
             if (_avatarPath != null && _avatarPath!.isEmpty) {
               _avatarPath = null;

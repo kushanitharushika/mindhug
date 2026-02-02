@@ -66,8 +66,8 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
         if (doc.exists && mounted) {
           final data = doc.data()!;
           setState(() {
-            _nameController.text = data['Name'] ?? '';
-            _emailController.text = data['Email'] ?? '';
+            _nameController.text = data['Name'] ?? user.displayName ?? '';
+            _emailController.text = data['Email'] ?? user.email ?? '';
             _phoneController.text = data['PhoneNumber'] ?? '';
             _birthdayController.text = data['Birthday'] ?? '';
             // _avatarPath = data['Avatar']; // Integrate if saving avatar URL in future
@@ -102,11 +102,16 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
       if (user != null) {
         await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
           'Name': _nameController.text.trim(),
-          'Email': _emailController.text.trim(), // Usually email is not changed here, but allowing sync
+          'Email': _emailController.text.trim(), 
           'PhoneNumber': _phoneController.text.trim(),
           'Birthday': _birthdayController.text.trim(),
-          // 'Avatar': _avatarPath, // Decide if storing path or URL
+          // 'Avatar': _avatarPath, 
         }, SetOptions(merge: true));
+
+        // Update Auth Display Name to keep in sync
+        if (_nameController.text.isNotEmpty) {
+          await user.updateDisplayName(_nameController.text.trim());
+        }
       }
 
       // Also update local storage as backup/cache if needed

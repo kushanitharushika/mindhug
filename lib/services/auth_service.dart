@@ -45,6 +45,11 @@ class AuthService {
         password: password,
       );
 
+      // Update Display Name in Auth
+      if (credential.user != null) {
+        await credential.user!.updateDisplayName(name);
+      }
+
       // 2. Save to Firestore
       if (credential.user != null) {
         await FirebaseFirestore.instance
