@@ -35,5 +35,13 @@ service cloud.firestore {
     match /quiz_history/{document=**} {
       allow read, write: if request.auth != null;
     }
+
+    // Journal collection
+    // - Authenticated users can read/write their own entries
+    match /journal/{document=**} {
+      allow read, write: if request.auth != null && 
+                          (resource == null || resource.data.userId == request.auth.uid) &&
+                          (request.resource == null || request.resource.data.userId == request.auth.uid);
+    }
   }
 }

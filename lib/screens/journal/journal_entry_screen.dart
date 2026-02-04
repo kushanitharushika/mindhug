@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../models/journal_entry.dart';
 import '../../core/theme/app_colors.dart';
 
@@ -20,6 +22,7 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
   List<String> _selectedTags = [];
   List<String> _selectedImages = [];
   final ImagePicker _picker = ImagePicker();
+  bool _isSaving = false;
   
   static const List<Map<String, dynamic>> _moodOptions = [
     {'label': 'Rad', 'icon': Icons.star_rounded, 'color': Colors.amber},
@@ -71,19 +74,61 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
     super.dispose();
   }
 
-  void _save() {
+  Future<void> _save() async {
     if (_textController.text.trim().isEmpty) return;
 
-    final newEntry = JournalEntry(
-      title: _titleController.text.trim().isEmpty ? null : _titleController.text.trim(),
-      text: _textController.text.trim(),
-      mood: _selectedMood,
-      tags: _selectedTags,
-      images: _selectedImages,
-      date: widget.entry?.date, 
-    );
+    setState(() => _isSaving = true);
+    
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        // Handle unauthenticated state if needed, but app should ensure auth
+        // For now just return
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Error: Not signed in")));
+        setState(() => _isSaving = false);
+        return;
+      }
 
-    Navigator.pop(context, {'action': 'save', 'entry': newEntry});
+      List<String> finalImagePaths = [];
+
+      // Upload new images
+      for (String path in _selectedImages) {
+        if (path.startsWith('http')) {
+          finalImagePaths.add(path); // Already a URL
+        } else {
+          // Local file, upload it
+          final file = File(path);
+          if (await file.exists()) {
+             final fileName = 'journal_${DateTime.now().millisecondsSinceEpoch}_${path.hashCode}.jpg';
+             final ref = FirebaseStorage.instance.ref().child('uploads/${user.uid}/journal/$fileName');
+             await ref.putFile(file);
+             final url = await ref.getDownloadURL();
+             finalImagePaths.add(url);
+          }
+        }
+      }
+
+      final newEntry = JournalEntry(
+        id: widget.entry?.id, // Keep existing ID if editing
+        userId: user.uid,
+        title: _titleController.text.trim().isEmpty ? null : _titleController.text.trim(),
+        text: _textController.text.trim(),
+        mood: _selectedMood,
+        tags: _selectedTags,
+        images: finalImagePaths,
+        date: widget.entry?.date, 
+      );
+
+      if (mounted) {
+        Navigator.pop(context, {'action': 'save', 'entry': newEntry});
+      }
+    } catch (e) {
+      debugPrint("Error saving journal entry: $e");
+      if (mounted) {
+         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Failed to save: $e")));
+         setState(() => _isSaving = false);
+      }
+    }
   }
 
   void _delete() {
