@@ -23,6 +23,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String _level = "Not Checked";
   String? _avatarPath;
   int _score = 0;
+  List<Map<String, dynamic>> _history = [];
   bool _isLoading = true;
 
   final NotificationService _notificationService = NotificationService();
@@ -43,6 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
       
       final savedScore = await LocalStorage.getQuizScore();
       final savedLevel = await LocalStorage.getMentalHealthLevel();
+      final history = await LocalStorage.getQuizHistory();
       
       int displayScore = savedScore;
       String displayLevel = savedLevel ?? "Not Checked";
@@ -77,6 +79,7 @@ class _HomeScreenState extends State<HomeScreen> {
           }
           _score = displayScore;
           _level = displayLevel;
+          _history = history;
           _isLoading = false;
         });
       }
@@ -203,64 +206,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
             const SizedBox(height: 32),
 
-            // Quick Actions Header
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Quick Actions",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: textColor,
-                  ),
-                ),
-              ],
+            // Monthly Progress Header
+            const Text(
+              "Monthly Mental Health",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            // Quick Actions Grid
-            GridView.count(
-              shrinkWrap: true,
-              padding: const EdgeInsets.all(6),
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 2,
-              mainAxisSpacing: 16,
-              crossAxisSpacing: 16,
-              childAspectRatio: 1.5,
-              children: [
-                _actionCard(
-                  "Exercises",
-                  Icons.self_improvement,
-                  Colors.orange.shade400,
-                  Colors.orange.shade50,
-                  () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ExercisesScreen())),
-                  isDark
-                ),
-                _actionCard(
-                  "Journal",
-                  Icons.book,
-                  Colors.blue.shade400,
-                  Colors.blue.shade50,
-                  () => Navigator.push(context, MaterialPageRoute(builder: (_) => const JournalScreen())),
-                  isDark
-                ),
-                _actionCard(
-                  "Chat with Melo",
-                  Icons.chat_bubble_outline,
-                  Colors.purple.shade400,
-                  Colors.purple.shade50,
-                  () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MindHugChatbot())),
-                  isDark
-                ),
-                _actionCard(
-                  "Support",
-                  Icons.favorite_border,
-                  Colors.red.shade400,
-                  Colors.red.shade50,
-                  () {}, // TODO: Add support screen
-                  isDark
-                ),
-              ],
-            ),
+            const SizedBox(height: 16),
+            
+            _buildMonthlyProgress(isDark),
 
             const SizedBox(height: 32),
 
@@ -401,48 +357,137 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _actionCard(String title, IconData icon, Color color, Color bgLight, VoidCallback onTap, bool isDark) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
+  Widget _buildMonthlyProgress(bool isDark) {
+    // Filter for current month
+    final now = DateTime.now();
+    final currentMonthHistory = _history.where((entry) {
+      final date = DateTime.parse(entry['date']);
+      return date.month == now.month && date.year == now.year;
+    }).toList();
+
+    // Sort by date descending
+    currentMonthHistory.sort((a, b) => b['date'].compareTo(a['date']));
+
+    if (currentMonthHistory.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: isDark ? AppColors.surfaceDark : Colors.white,
+          color: isDark ? AppColors.surfaceDark : Colors.grey.shade100,
           borderRadius: BorderRadius.circular(20),
-          border: isDark ? Border.all(color: Colors.white10) : null,
-          boxShadow: [
-            if (!isDark)
-              BoxShadow(
-                color: Colors.black.withOpacity(0.04),
-                blurRadius: 16,
-                offset: const Offset(0, 4),
-              ),
-          ],
         ),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: isDark ? color.withOpacity(0.15) : bgLight,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, color: color, size: 28),
-            ),
-            const SizedBox(height: 12),
+            const Icon(Icons.history_edu, size: 40, color: Colors.grey),
+            const SizedBox(height: 10),
             Text(
-              title,
+              "No check-ins yet this month",
               style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: isDark ? Colors.white : AppColors.textPrimary,
+                 color: isDark ? Colors.white70 : Colors.grey.shade600,
+                 fontWeight: FontWeight.w500
               ),
             ),
+            TextButton(
+              onPressed: () async {
+                 await Navigator.push(context, MaterialPageRoute(builder: (_) => const MentalHealthQuiz()));
+                 _loadData();
+              }, 
+              child: const Text("Start your first check-in")
+            )
           ],
         ),
-      ),
+      );
+    }
+
+    return ListView.separated(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: currentMonthHistory.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      itemBuilder: (context, index) {
+        final entry = currentMonthHistory[index];
+        final date = DateTime.parse(entry['date']);
+        final score = entry['score'] as int;
+        
+        Color scoreColor;
+        if (score >= 40) scoreColor = Colors.teal;
+        else if (score >= 32) scoreColor = Colors.blue;
+        else if (score >= 24) scoreColor = Colors.amber;
+        else scoreColor = Colors.deepOrange;
+
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.surfaceDark : Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isDark ? Colors.white10 : Colors.grey.shade100
+            ),
+            boxShadow: [
+              if (!isDark)
+                 BoxShadow(
+                   color: Colors.black.withOpacity(0.03),
+                   blurRadius: 10,
+                   offset: const Offset(0, 4)
+                 )
+            ]
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: scoreColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Center(
+                  child: Text(
+                    score.toString(),
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: scoreColor,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      entry['level'] ?? 'Unknown',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white : AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      "${date.day}/${date.month} • ${_formatTime(date)}",
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark ? Colors.white54 : AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
+  }
+
+  String _formatTime(DateTime date) {
+    final hour = date.hour > 12 ? date.hour - 12 : (date.hour == 0 ? 12 : date.hour);
+    final minute = date.minute.toString().padLeft(2, '0');
+    final period = date.hour >= 12 ? 'PM' : 'AM';
+    return "$hour:$minute $period";
   }
 
 

@@ -12,6 +12,32 @@ class LocalStorage {
     await prefs.setInt('quiz_score', score);
     await prefs.setString('mental_health_level', level);
     await prefs.setBool('quiz_completed', true);
+    
+    // Save to history
+    await saveQuizHistory(score, level);
+  }
+
+  /// Save quiz history entry
+  static Future<void> saveQuizHistory(int score, String level) async {
+    final prefs = await SharedPreferences.getInstance();
+    final List<String> history = prefs.getStringList('quiz_history') ?? [];
+    
+    final entry = {
+      'date': DateTime.now().toIso8601String(),
+      'score': score,
+      'level': level,
+    };
+    
+    history.add(jsonEncode(entry));
+    await prefs.setStringList('quiz_history', history);
+  }
+
+  /// Get quiz history
+  static Future<List<Map<String, dynamic>>> getQuizHistory() async {
+    final prefs = await SharedPreferences.getInstance();
+    final List<String> history = prefs.getStringList('quiz_history') ?? [];
+    
+    return history.map((e) => jsonDecode(e) as Map<String, dynamic>).toList();
   }
 
   /// Get notification preference
