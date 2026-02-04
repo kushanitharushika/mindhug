@@ -30,5 +30,10 @@ service cloud.firestore {
       allow read: if request.auth != null;
       allow write: if isAdmin();
     }
+    
+    // Quiz History collection
+    match /quiz_history/{document=**} {
+      allow read, write: if request.auth != null;
+    }
   }
 }

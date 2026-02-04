@@ -89,16 +89,28 @@ class _MentalHealthQuizState extends State<MentalHealthQuiz> {
           'latestQuizLevel': level,
           'lastQuizDate': FieldValue.serverTimestamp(),
         }, SetOptions(merge: true));
+        debugPrint("SUCCESS: User profile updated.");
 
         // 2. Add to 'quiz_history' root collection (matching user's schema)
-        await FirebaseFirestore.instance.collection('quiz_history').add({
-          'userId': user.uid, // Important for querying
-          'email': user.email ?? "",
-          'quizscore': totalScore.toString(), // Storing as string based on screenshot schema
-          'quizlevel': level,
-          'quizdate': DateTime.now().toIso8601String(),
-          'timestamp': FieldValue.serverTimestamp(),
-        });
+        try {
+          debugPrint("Attempting to write to quiz_history...");
+          await FirebaseFirestore.instance.collection('quiz_history').add({
+            'userId': user.uid, // Important for querying
+            'email': user.email ?? "",
+            'quizscore': totalScore.toString(), // Storing as string based on screenshot schema
+            'quizlevel': level,
+            'quizdate': DateTime.now().toIso8601String(),
+            'timestamp': FieldValue.serverTimestamp(),
+          });
+          debugPrint("SUCCESS: Written to quiz_history.");
+        } catch (e) {
+          debugPrint("ERROR writing to quiz_history: $e");
+          if (mounted) {
+             ScaffoldMessenger.of(context).showSnackBar(
+               SnackBar(content: Text("Failed to save history: $e")),
+             );
+          }
+        }
       }
     } catch (e) {
       debugPrint("Error saving quiz result to Firestore: $e");
