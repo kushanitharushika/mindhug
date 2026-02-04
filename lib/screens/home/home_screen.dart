@@ -521,7 +521,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ),
-                  borderData: const FlBorderData(show: false),
+                  borderData: FlBorderData(show: false),
                   minX: 0,
                   maxX: (chartData.length - 1).toDouble(),
                   minY: 0,
