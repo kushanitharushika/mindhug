@@ -153,10 +153,6 @@ class _JournalScreenState extends State<JournalScreen> {
                 }
 
                 final docs = snapshot.data?.docs ?? [];
-                debugPrint("JOURNAL DEBUG: User ID = ${user.uid}");
-                debugPrint("JOURNAL DEBUG: Found ${docs.length} documents");
-                
-                if (snapshot.hasError) debugPrint("JOURNAL DEBUG: Error = ${snapshot.error}");
 
                 if (docs.isEmpty) {
                   return Center(

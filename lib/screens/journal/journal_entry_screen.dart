@@ -571,8 +571,8 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
             Positioned(
               top: 16,
               right: 16,
-              child: TextButton(
-                onPressed: _save,
+                child: TextButton(
+                onPressed: _isSaving ? null : _save,
                 style: TextButton.styleFrom(
                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                    backgroundColor: accentColor, // Filled button for prominence
@@ -580,7 +580,16 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
                    elevation: 4,
                    shadowColor: accentColor.withOpacity(0.4),
                 ),
-                child: const Text('Save', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
+                child: _isSaving 
+                    ? const SizedBox(
+                        width: 20, 
+                        height: 20, 
+                        child: CircularProgressIndicator(
+                          color: Colors.white, 
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text('Save', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
               ),
             ),
           ],
