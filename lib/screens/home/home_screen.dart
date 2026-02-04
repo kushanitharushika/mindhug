@@ -492,7 +492,7 @@ class _HomeScreenState extends State<HomeScreen> {
                height: 180,
                child: LineChart(
                 LineChartData(
-                  gridData: FlGridData(show: false),
+                  gridData: const FlGridData(show: false),
                   titlesData: FlTitlesData(
                     leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                     topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
@@ -521,7 +521,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ),
-                  borderData: FlBorderData(show: false),
+                  borderData: const FlBorderData(show: false),
                   minX: 0,
                   maxX: (chartData.length - 1).toDouble(),
                   minY: 0,
