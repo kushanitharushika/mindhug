@@ -26,6 +26,12 @@ class _HomeScreenState extends State<HomeScreen> {
   int _score = 0;
   List<Map<String, dynamic>> _history = [];
   bool _isLoading = true;
+  DateTime _selectedMonth = DateTime.now(); // Track selected month
+  
+  static const List<String> months = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
 
   final NotificationService _notificationService = NotificationService();
   
@@ -68,29 +74,8 @@ class _HomeScreenState extends State<HomeScreen> {
              _avatarPath = user.photoURL;
           }
 
-          // Fetch History from 'quiz_history' root collection
-          try {
-             final historySnapshot = await FirebaseFirestore.instance
-                 .collection('quiz_history')
-                 .where('userId', isEqualTo: user.uid)
-                 .orderBy('timestamp', descending: true)
-                 .limit(20)
-                 .get();
-
-             if (historySnapshot.docs.isNotEmpty) {
-               history = historySnapshot.docs.map((doc) {
-                 final data = doc.data();
-                 // Map user's schema to UI expectation
-                 return {
-                   'score': int.tryParse(data['quizscore'].toString()) ?? 0,
-                   'level': data['quizlevel'] ?? 'Unknown',
-                   'date': data['quizdate'] ?? DateTime.now().toIso8601String(),
-                 };
-               }).toList();
-             }
-          } catch (e) {
-             debugPrint("Error fetching history: $e");
-          }
+          // Fetch History
+          await _fetchMonthData(user.uid);
         }
       }
 
@@ -130,6 +115,70 @@ class _HomeScreenState extends State<HomeScreen> {
       'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'
     ];
     return "${weekdays[now.weekday - 1]}, ${now.day} ${months[now.month - 1]}";
+  }
+
+  Future<void> _fetchMonthData(String uid) async {
+    // Keep loading true only if we don't have existing data to show, or make it subtle
+    // setState(() => _isLoading = true); 
+    
+    try {
+      final start = DateTime(_selectedMonth.year, _selectedMonth.month, 1);
+      final end = DateTime(_selectedMonth.year, _selectedMonth.month + 1, 1);
+
+      debugPrint("Fetching data for ${start.month}/${start.year}");
+
+      final historySnapshot = await FirebaseFirestore.instance
+           .collection('quiz_history')
+           .where('userId', isEqualTo: uid)
+           .where('timestamp', isGreaterThanOrEqualTo: Timestamp.fromDate(start))
+           .where('timestamp', isLessThan: Timestamp.fromDate(end))
+           .orderBy('timestamp', descending: false) // Oldest first for chart
+           .get();
+
+       List<Map<String, dynamic>> fetchedHistory = [];
+       if (historySnapshot.docs.isNotEmpty) {
+         fetchedHistory = historySnapshot.docs.map((doc) {
+           final data = doc.data();
+           return {
+             'score': int.tryParse(data['quizscore'].toString()) ?? 0,
+             'level': data['quizlevel'] ?? 'Unknown',
+             'date': data['quizdate'] ?? DateTime.now().toIso8601String(),
+           };
+         }).toList();
+       }
+       
+       if (mounted) {
+         setState(() {
+           _history = fetchedHistory;
+           _isLoading = false;
+         });
+       }
+    } catch (e) {
+       debugPrint("Error fetching month data: $e");
+       if (mounted) {
+         // Show snackbar if it's an index error (common with composite queries)
+         if (e.toString().contains('failed-precondition') || e.toString().contains('requires an index')) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("Index required! Check debug console for link."),
+                backgroundColor: Colors.red,
+                duration: Duration(seconds: 10),
+              ),
+            );
+         }
+       }
+    }
+  }
+
+  void _changeMonth(int offset) {
+    setState(() {
+      _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month + offset);
+      // Don't clear history yet to minimize flicker
+    });
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      _fetchMonthData(user.uid);
+    }
   }
 
   Color _getMoodColor() {
@@ -382,50 +431,21 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildAnalyticsChart(bool isDark) {
-    if (_history.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: isDark ? AppColors.surfaceDark : Colors.white,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Center(
-          child: Column(
-            children: [
-              Icon(Icons.show_chart, size: 48, color: Colors.grey.shade400),
-              const SizedBox(height: 12),
-              Text(
-                "No data to analyze yet",
-                style: TextStyle(color: Colors.grey.shade600),
-              ),
-              TextButton(
-                onPressed: () async {
-                   await Navigator.push(context, MaterialPageRoute(builder: (_) => const MentalHealthQuiz()));
-                   _loadData();
-                }, 
-                child: const Text("Take your first Check-in")
-              )
-            ],
-          ),
-        ),
-      );
-    }
-
-    // Sort chronologically for the chart (Oldest -> Newest)
+    // Sort chronologically (Oldest -> Newest)
     final sortedHistory = List<Map<String, dynamic>>.from(_history);
     sortedHistory.sort((a, b) => a['date'].compareTo(b['date']));
     
-    // Take last 7 data points for better visibility
-    final chartData = sortedHistory.length > 7 ? sortedHistory.sublist(sortedHistory.length - 7) : sortedHistory;
+    // Use ALL data for the month
+    final chartData = sortedHistory;
+    final monthName = months[_selectedMonth.month - 1];
 
     List<FlSpot> spots = [];
     for (int i = 0; i < chartData.length; i++) {
-      spots.add(FlSpot(i.toDouble(), (chartData[i]['score'] as int).toDouble()));
+        spots.add(FlSpot(i.toDouble(), (chartData[i]['score'] as int).toDouble()));
     }
 
     return Container(
-      height: 220,
-      padding: const EdgeInsets.fromLTRB(16, 24, 16, 10),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isDark ? AppColors.surfaceDark : Colors.white,
         borderRadius: BorderRadius.circular(24),
@@ -438,93 +458,119 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
         ],
       ),
-      child: LineChart(
-        LineChartData(
-          gridData: FlGridData(show: false),
-          titlesData: FlTitlesData(
-            leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            bottomTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                getTitlesWidget: (value, meta) {
-                  int index = value.toInt();
-                  if (index >= 0 && index < chartData.length) {
-                    final date = DateTime.parse(chartData[index]['date']);
-                    return Padding(
-                      padding: const EdgeInsets.only(top: 8.0),
-                      child: Text(
-                        "${date.day}/${date.month}",
-                        style: TextStyle(
-                          fontSize: 10, 
-                          color: isDark ? Colors.white54 : Colors.grey.shade600
+      child: Column(
+        children: [
+           // Month Selector
+           Row(
+             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+             children: [
+               IconButton(
+                 icon: const Icon(Icons.chevron_left),
+                 onPressed: () => _changeMonth(-1),
+               ),
+               Text(
+                 "$monthName ${_selectedMonth.year}",
+                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+               ),
+               IconButton(
+                 icon: const Icon(Icons.chevron_right),
+                 onPressed: () => _changeMonth(1),
+               ),
+             ],
+           ),
+           const SizedBox(height: 10),
+
+           if (chartData.isEmpty)
+             SizedBox(
+               height: 150,
+               child: Center(
+                 child: Text(
+                   "No check-ins in $monthName",
+                   style: TextStyle(color: isDark ? Colors.white54 : Colors.grey),
+                 ),
+               ),
+             )
+           else
+             SizedBox(
+               height: 180,
+               child: LineChart(
+                LineChartData(
+                  gridData: FlGridData(show: false),
+                  titlesData: FlTitlesData(
+                    leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        getTitlesWidget: (value, meta) {
+                          int index = value.toInt();
+                          if (index >= 0 && index < chartData.length) {
+                            final date = DateTime.parse(chartData[index]['date']);
+                            return Padding(
+                              padding: const EdgeInsets.only(top: 8.0),
+                              child: Text(
+                                "${date.day}",
+                                style: TextStyle(
+                                  fontSize: 10, 
+                                  color: isDark ? Colors.white54 : Colors.grey.shade600
+                                ),
+                              ),
+                            );
+                          }
+                          return const Text('');
+                        },
+                        interval: 1,
+                      ),
+                    ),
+                  ),
+                  borderData: FlBorderData(show: false),
+                  minX: 0,
+                  maxX: (chartData.length - 1).toDouble(),
+                  minY: 0,
+                  maxY: 50,
+                  lineBarsData: [
+                    LineChartBarData(
+                      spots: spots,
+                      isCurved: true,
+                      color: Colors.purple.shade400,
+                      barWidth: 4,
+                      isStrokeCapRound: true,
+                      dotData: FlDotData(
+                        show: true,
+                        getDotPainter: (spot, percent, barData, index) => FlDotCirclePainter(
+                          radius: 4,
+                          color: Colors.white,
+                          strokeWidth: 2,
+                          strokeColor: Colors.purple.shade400
                         ),
                       ),
-                    );
-                  }
-                  return const Text('');
-                },
-                interval: 1,
-              ),
-            ),
-          ),
-          borderData: FlBorderData(show: false),
-          minX: 0,
-          maxX: (chartData.length - 1).toDouble(),
-          minY: 0,
-          maxY: 50, // Max quiz score
-          lineBarsData: [
-            LineChartBarData(
-              spots: spots,
-              isCurved: true,
-              color: Colors.purple.shade400,
-              barWidth: 4,
-              isStrokeCapRound: true,
-              dotData: FlDotData(
-                show: true,
-                getDotPainter: (spot, percent, barData, index) => FlDotCirclePainter(
-                  radius: 4,
-                  color: Colors.white,
-                  strokeWidth: 2,
-                  strokeColor: Colors.purple.shade400
+                      belowBarData: BarAreaData(
+                        show: true,
+                        color: Colors.purple.withOpacity(0.1),
+                      ),
+                    ),
+                  ],
+                  lineTouchData: LineTouchData(
+                    touchTooltipData: LineTouchTooltipData(
+                      getTooltipItems: (touchedSpots) {
+                         return touchedSpots.map((spot) {
+                            final d = chartData[spot.x.toInt()];
+                            return LineTooltipItem(
+                              "${spot.y.toInt()}\n",
+                              const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                              children: [TextSpan(text: d['level'], style: const TextStyle(fontSize: 10, fontWeight: FontWeight.normal))]
+                            );
+                         }).toList();
+                      },
+                       tooltipRoundedRadius: 8,
+                       tooltipPadding: const EdgeInsets.all(8),
+                    ),
+                  ),
                 ),
               ),
-              belowBarData: BarAreaData(
-                show: true,
-                color: Colors.purple.withOpacity(0.1),
-              ),
-            ),
-          ],
-          lineTouchData: LineTouchData(
-            touchTooltipData: LineTouchTooltipData(
-              getTooltipItems: (touchedSpots) {
-                return touchedSpots.map((LineBarSpot touchedSpot) {
-                  final index = touchedSpot.x.toInt();
-                  final data = chartData[index];
-                  final level = data['level'] ?? '';
-                  return LineTooltipItem(
-                    "${touchedSpot.y.toInt()}\n",
-                    const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                    children: [
-                      TextSpan(
-                        text: level,
-                        style: const TextStyle(
-                          color: Colors.white70, 
-                          fontSize: 10, 
-                          fontWeight: FontWeight.normal
-                        ),
-                      ),
-                    ],
-                  );
-                }).toList();
-              },
-              tooltipRoundedRadius: 8,
-              tooltipPadding: const EdgeInsets.all(8),
-              tooltipMargin: 8,
-            ),
-          ),
-        ),
+             ),
+        ],
       ),
     );
   }
