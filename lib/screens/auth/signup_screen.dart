@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
 import '../quiz/mental_health_quiz.dart';
-import '../../widgets/bottom_nav.dart';
-import '../../core/storage/local_storage.dart';
 import '../../widgets/app_scaffold.dart';
 
 class SignupScreen extends StatefulWidget {
