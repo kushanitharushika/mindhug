@@ -9,6 +9,7 @@ import '../quiz/mental_health_quiz.dart';
 import '../exercises/exercises_screen.dart';
 import '../journal/journal_screen.dart';
 import '../chatbot/melo_chat_screen.dart';
+import '../../services/notification_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -20,12 +21,18 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   String _name = "Friend";
   String _level = "Not Checked";
+  String? _avatarPath;
   int _score = 0;
   bool _isLoading = true;
+
+  final NotificationService _notificationService = NotificationService();
+  
+
 
   @override
   void initState() {
     super.initState();
+    _notificationService.init();
     _loadData();
   }
 
@@ -50,6 +57,13 @@ class _HomeScreenState extends State<HomeScreen> {
           if (data.containsKey('latestQuizScore')) {
              displayScore = data['latestQuizScore'];
              displayLevel = data['latestQuizLevel'] ?? displayLevel;
+             displayLevel = data['latestQuizLevel'] ?? displayLevel;
+          }
+           // Load avatar if available
+          if (data.containsKey('Avatar')) {
+             _avatarPath = data['Avatar'];
+          } else {
+             _avatarPath = user.photoURL;
           }
         }
       }
@@ -126,7 +140,12 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: CircleAvatar(
               radius: 18,
               backgroundColor: AppColors.primary.withOpacity(0.2),
-              child: const Icon(Icons.person, color: AppColors.primary, size: 20),
+              backgroundImage: _avatarPath != null 
+                  ? NetworkImage(_avatarPath!) 
+                  : null,
+              child: _avatarPath == null 
+                ? const Icon(Icons.person, color: AppColors.primary, size: 20)
+                : null,
             ),
           ),
           const SizedBox(width: 16),
@@ -175,17 +194,10 @@ class _HomeScreenState extends State<HomeScreen> {
             
             // Hero Mood Card
             const SizedBox(height: 6),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 24),
-              child: Text(
-                "Feelings change. You’re not stuck like this.",
-                style: TextStyle(
-                  fontSize: 14,
-                  color: subTextColor.withOpacity(0.8),
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
-            ),
+            const SizedBox(height: 6),
+            
+
+            const SizedBox(height: 32),
 
             _buildMoodCard(isDark),
 
@@ -432,5 +444,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
+
 }
 

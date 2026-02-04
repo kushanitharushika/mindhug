@@ -10,7 +10,9 @@ import '../../services/auth_service.dart';
 import '../auth/auth_wrapper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../admin/admin_dashboard.dart';
+import '../../services/notification_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -59,6 +61,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
              _name = data['Name'] ?? user.displayName ?? 'MindHug User';
              _email = data['Email'] ?? user.email ?? '';
              _isAdmin = role == 'admin';
+             _avatarPath = data['Avatar'] ?? user.photoURL;
            });
         }
       } else {
@@ -124,9 +127,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     CircleAvatar(
                       radius: 50,
                       backgroundColor: AppColors.primary.withOpacity(0.1),
-                      backgroundImage: _avatarPath != null && File(_avatarPath!).existsSync()
-                          ? FileImage(File(_avatarPath!))
-                          : null,
+                      backgroundImage: _getAvatarImage(),
                       child: _avatarPath == null
                           ? const Icon(
                               Icons.person,
@@ -262,10 +263,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                       const Divider(height: 1),
                     ],
-                    _SettingsTile(
+                      _SettingsTile(
                       icon: Icons.notifications_outlined,
                       title: 'Notifications',
-                      onTap: () {},
+                      onTap: () {
+                        _showNotificationSettings(context, isDark);
+                      },
                       isDark: isDark,
                     ),
                      const Divider(height: 1),
@@ -363,6 +366,95 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ],
       ),
     );
+  }
+
+
+  void _showNotificationSettings(BuildContext context, bool isDark) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return FutureBuilder<bool>(
+              future: LocalStorage.getNotificationPreference(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) return const SizedBox();
+                
+                bool isEnabled = snapshot.data!;
+
+                return AlertDialog(
+                  title: const Text("Notifications"),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SwitchListTile(
+                        title: const Text("Hourly Reminders"),
+                        subtitle: const Text("Get gentle reminders to check your mood."),
+                        value: isEnabled,
+                        onChanged: (value) async {
+                          if (value) {
+                             bool granted = await NotificationService().requestPermissions();
+                             if (granted) {
+                               await NotificationService().scheduleHourlyNotification(
+                                 id: 1, 
+                                 title: "Time for a MindHug?", 
+                                 body: "Take a moment to check in with yourself."
+                               );
+                               await LocalStorage.saveNotificationPreference(true);
+                               setDialogState(() {});
+                             } else {
+                               if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                 const SnackBar(content: Text("Permission denied")),
+                               );
+                               }
+                             }
+                          } else {
+                            await NotificationService().cancelAll();
+                            await LocalStorage.saveNotificationPreference(false);
+                            setDialogState(() {});
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 10),
+                      ElevatedButton.icon(
+                        onPressed: () async {
+                           await NotificationService().showInstantNotification(
+                             id: 99, 
+                             title: "Test Notification", 
+                             body: "This is how your MindHug reminders will look!"
+                           );
+                        },
+                        icon: const Icon(Icons.send),
+                        label: const Text("Send Test Notification"),
+                      )
+                    ],
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text("Close"),
+                    ),
+                  ],
+                );
+              }
+            );
+          },
+        );
+      },
+    );
+  }
+
+  ImageProvider? _getAvatarImage() {
+    if (_avatarPath == null) return null;
+    if (_avatarPath!.startsWith('http')) {
+      return NetworkImage(_avatarPath!);
+    }
+    final file = File(_avatarPath!);
+    if (file.existsSync()) {
+      return FileImage(file);
+    }
+    return null;
   }
 }
 

@@ -14,6 +14,18 @@ class LocalStorage {
     await prefs.setBool('quiz_completed', true);
   }
 
+  /// Get notification preference
+  static Future<bool> getNotificationPreference() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('notifications_enabled') ?? false;
+  }
+
+  /// Save notification preference
+  static Future<void> saveNotificationPreference(bool enabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('notifications_enabled', enabled);
+  }
+
   /// Get stored mental health level
   static Future<String?> getMentalHealthLevel() async {
     final prefs = await SharedPreferences.getInstance();

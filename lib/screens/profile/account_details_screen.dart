@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../core/storage/local_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import '../../core/theme/app_colors.dart';
 import '../../widgets/app_scaffold.dart';
 
@@ -70,7 +71,7 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
             _emailController.text = data['Email'] ?? user.email ?? '';
             _phoneController.text = data['PhoneNumber'] ?? '';
             _birthdayController.text = data['Birthday'] ?? '';
-            // _avatarPath = data['Avatar']; // Integrate if saving avatar URL in future
+            _avatarPath = data['Avatar'] ?? user.photoURL;
           });
         }
       } else {
@@ -100,17 +101,52 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
+        String? photoUrl = _avatarPath;
+
+        // Upload image if it's a local file
+        if (_avatarPath != null && !(_avatarPath!.startsWith('http'))) {
+             final file = File(_avatarPath!);
+             if (file.existsSync()) {
+               final fileName = 'avatar_${DateTime.now().millisecondsSinceEpoch}.jpg';
+               final ref = FirebaseStorage.instance
+                   .ref()
+                   .child('uploads/${user.uid}/$fileName');
+               
+               debugPrint('Starting upload to ${ref.fullPath}');
+               
+               try {
+                 final task = await ref.putFile(file);
+                 debugPrint('Upload task completed. State: ${task.state}');
+                 
+                 if (task.state == TaskState.success) {
+                   photoUrl = await ref.getDownloadURL();
+                   debugPrint('Got download URL: $photoUrl');
+                 } else {
+                   debugPrint('Upload failed or paused. State: ${task.state}');
+                   throw Exception('Upload failed with state: ${task.state}');
+                 }
+               } catch (uploadError) {
+                 debugPrint('Upload error: $uploadError');
+                 // Rethrow so outer catch handles it/shows snackbar
+                 rethrow; 
+               }
+             }
+        }
+
         await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
           'Name': _nameController.text.trim(),
           'Email': _emailController.text.trim(), 
           'PhoneNumber': _phoneController.text.trim(),
           'Birthday': _birthdayController.text.trim(),
-          // 'Avatar': _avatarPath, 
+          'Avatar': photoUrl,
         }, SetOptions(merge: true));
 
-        // Update Auth Display Name to keep in sync
+        // Update Auth Display Name & Photo URL
         if (_nameController.text.isNotEmpty) {
           await user.updateDisplayName(_nameController.text.trim());
+        }
+        if (photoUrl != null) {
+           await user.updatePhotoURL(photoUrl);
         }
       }
 
@@ -224,9 +260,7 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                             child: CircleAvatar(
                               radius: 60,
                               backgroundColor: isDark ? Colors.white10 : Colors.purple.shade50,
-                              backgroundImage: _avatarPath != null && File(_avatarPath!).existsSync()
-                                  ? FileImage(File(_avatarPath!))
-                                  : null,
+                              backgroundImage: _getAvatarImage(),
                               child: _avatarPath == null
                                   ? Icon(Icons.person, size: 60, color: AppColors.primary.withOpacity(0.5))
                                   : null,
@@ -365,6 +399,19 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
         ],
       ),
     );
+  }
+
+
+  ImageProvider? _getAvatarImage() {
+    if (_avatarPath == null) return null;
+    if (_avatarPath!.startsWith('http')) {
+      return NetworkImage(_avatarPath!);
+    }
+    final file = File(_avatarPath!);
+    if (file.existsSync()) {
+      return FileImage(file);
+    }
+    return null;
   }
 }
 
