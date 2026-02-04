@@ -44,7 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
       
       final savedScore = await LocalStorage.getQuizScore();
       final savedLevel = await LocalStorage.getMentalHealthLevel();
-      final history = await LocalStorage.getQuizHistory();
+      List<Map<String, dynamic>> history = await LocalStorage.getQuizHistory();
       
       int displayScore = savedScore;
       String displayLevel = savedLevel ?? "Not Checked";
@@ -59,13 +59,36 @@ class _HomeScreenState extends State<HomeScreen> {
           if (data.containsKey('latestQuizScore')) {
              displayScore = data['latestQuizScore'];
              displayLevel = data['latestQuizLevel'] ?? displayLevel;
-             displayLevel = data['latestQuizLevel'] ?? displayLevel;
           }
            // Load avatar if available
           if (data.containsKey('Avatar')) {
              _avatarPath = data['Avatar'];
           } else {
              _avatarPath = user.photoURL;
+          }
+
+          // Fetch History from 'quiz_history' root collection
+          try {
+             final historySnapshot = await FirebaseFirestore.instance
+                 .collection('quiz_history')
+                 .where('userId', isEqualTo: user.uid)
+                 .orderBy('timestamp', descending: true)
+                 .limit(20)
+                 .get();
+
+             if (historySnapshot.docs.isNotEmpty) {
+               history = historySnapshot.docs.map((doc) {
+                 final data = doc.data();
+                 // Map user's schema to UI expectation
+                 return {
+                   'score': int.tryParse(data['quizscore'].toString()) ?? 0,
+                   'level': data['quizlevel'] ?? 'Unknown',
+                   'date': data['quizdate'] ?? DateTime.now().toIso8601String(),
+                 };
+               }).toList();
+             }
+          } catch (e) {
+             debugPrint("Error fetching history: $e");
           }
         }
       }

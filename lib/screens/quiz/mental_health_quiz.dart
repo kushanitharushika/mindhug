@@ -74,18 +74,31 @@ class _MentalHealthQuizState extends State<MentalHealthQuiz> {
   void showResult() async {
     final level = getMentalHealthLevel(totalScore);
 
-    // Save to Local Storage
+    // Save to Local Storage (Backup)
     await LocalStorage.saveQuizResult(score: totalScore, level: level);
 
     // Save to Firestore
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+        final userRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+        
+        // 1. Update latest score on main profile (keep for quick access)
+        await userRef.set({
           'latestQuizScore': totalScore,
           'latestQuizLevel': level,
           'lastQuizDate': FieldValue.serverTimestamp(),
         }, SetOptions(merge: true));
+
+        // 2. Add to 'quiz_history' root collection (matching user's schema)
+        await FirebaseFirestore.instance.collection('quiz_history').add({
+          'userId': user.uid, // Important for querying
+          'email': user.email ?? "",
+          'quizscore': totalScore.toString(), // Storing as string based on screenshot schema
+          'quizlevel': level,
+          'quizdate': DateTime.now().toIso8601String(),
+          'timestamp': FieldValue.serverTimestamp(),
+        });
       }
     } catch (e) {
       debugPrint("Error saving quiz result to Firestore: $e");
