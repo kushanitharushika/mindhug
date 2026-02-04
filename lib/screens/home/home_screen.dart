@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/storage/local_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../core/theme/app_colors.dart';
 import '../../widgets/mindhug_logo.dart';
@@ -231,7 +232,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
             // Monthly Progress Header
             const Text(
-              "Monthly Mental Health",
+              "Mental Health Trends",
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -239,7 +240,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 16),
             
-            _buildMonthlyProgress(isDark),
+            _buildAnalyticsChart(isDark),
 
             const SizedBox(height: 32),
 
@@ -380,129 +381,151 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildMonthlyProgress(bool isDark) {
-    // Filter for current month
-    final now = DateTime.now();
-    final currentMonthHistory = _history.where((entry) {
-      final date = DateTime.parse(entry['date']);
-      return date.month == now.month && date.year == now.year;
-    }).toList();
-
-    // Sort by date descending
-    currentMonthHistory.sort((a, b) => b['date'].compareTo(a['date']));
-
-    if (currentMonthHistory.isEmpty) {
+  Widget _buildAnalyticsChart(bool isDark) {
+    if (_history.isEmpty) {
       return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: isDark ? AppColors.surfaceDark : Colors.grey.shade100,
+          color: isDark ? AppColors.surfaceDark : Colors.white,
           borderRadius: BorderRadius.circular(20),
         ),
-        child: Column(
-          children: [
-            const Icon(Icons.history_edu, size: 40, color: Colors.grey),
-            const SizedBox(height: 10),
-            Text(
-              "No check-ins yet this month",
-              style: TextStyle(
-                 color: isDark ? Colors.white70 : Colors.grey.shade600,
-                 fontWeight: FontWeight.w500
+        child: Center(
+          child: Column(
+            children: [
+              Icon(Icons.show_chart, size: 48, color: Colors.grey.shade400),
+              const SizedBox(height: 12),
+              Text(
+                "No data to analyze yet",
+                style: TextStyle(color: Colors.grey.shade600),
               ),
-            ),
-            TextButton(
-              onPressed: () async {
-                 await Navigator.push(context, MaterialPageRoute(builder: (_) => const MentalHealthQuiz()));
-                 _loadData();
-              }, 
-              child: const Text("Start your first check-in")
-            )
-          ],
+              TextButton(
+                onPressed: () async {
+                   await Navigator.push(context, MaterialPageRoute(builder: (_) => const MentalHealthQuiz()));
+                   _loadData();
+                }, 
+                child: const Text("Take your first Check-in")
+              )
+            ],
+          ),
         ),
       );
     }
 
-    return ListView.separated(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: currentMonthHistory.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
-      itemBuilder: (context, index) {
-        final entry = currentMonthHistory[index];
-        final date = DateTime.parse(entry['date']);
-        final score = entry['score'] as int;
-        
-        Color scoreColor;
-        if (score >= 40) scoreColor = Colors.teal;
-        else if (score >= 32) scoreColor = Colors.blue;
-        else if (score >= 24) scoreColor = Colors.amber;
-        else scoreColor = Colors.deepOrange;
+    // Sort chronologically for the chart (Oldest -> Newest)
+    final sortedHistory = List<Map<String, dynamic>>.from(_history);
+    sortedHistory.sort((a, b) => a['date'].compareTo(b['date']));
+    
+    // Take last 7 data points for better visibility
+    final chartData = sortedHistory.length > 7 ? sortedHistory.sublist(sortedHistory.length - 7) : sortedHistory;
 
-        return Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: isDark ? AppColors.surfaceDark : Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: isDark ? Colors.white10 : Colors.grey.shade100
+    List<FlSpot> spots = [];
+    for (int i = 0; i < chartData.length; i++) {
+      spots.add(FlSpot(i.toDouble(), (chartData[i]['score'] as int).toDouble()));
+    }
+
+    return Container(
+      height: 220,
+      padding: const EdgeInsets.fromLTRB(16, 24, 16, 10),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.surfaceDark : Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          if (!isDark)
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 20,
+              offset: const Offset(0, 4),
             ),
-            boxShadow: [
-              if (!isDark)
-                 BoxShadow(
-                   color: Colors.black.withOpacity(0.03),
-                   blurRadius: 10,
-                   offset: const Offset(0, 4)
-                 )
-            ]
+        ],
+      ),
+      child: LineChart(
+        LineChartData(
+          gridData: FlGridData(show: false),
+          titlesData: FlTitlesData(
+            leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                getTitlesWidget: (value, meta) {
+                  int index = value.toInt();
+                  if (index >= 0 && index < chartData.length) {
+                    final date = DateTime.parse(chartData[index]['date']);
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Text(
+                        "${date.day}/${date.month}",
+                        style: TextStyle(
+                          fontSize: 10, 
+                          color: isDark ? Colors.white54 : Colors.grey.shade600
+                        ),
+                      ),
+                    );
+                  }
+                  return const Text('');
+                },
+                interval: 1,
+              ),
+            ),
           ),
-          child: Row(
-            children: [
-              Container(
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(
-                  color: scoreColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Center(
-                  child: Text(
-                    score.toString(),
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: scoreColor,
-                    ),
-                  ),
+          borderData: FlBorderData(show: false),
+          minX: 0,
+          maxX: (chartData.length - 1).toDouble(),
+          minY: 0,
+          maxY: 50, // Max quiz score
+          lineBarsData: [
+            LineChartBarData(
+              spots: spots,
+              isCurved: true,
+              color: Colors.purple.shade400,
+              barWidth: 4,
+              isStrokeCapRound: true,
+              dotData: FlDotData(
+                show: true,
+                getDotPainter: (spot, percent, barData, index) => FlDotCirclePainter(
+                  radius: 4,
+                  color: Colors.white,
+                  strokeWidth: 2,
+                  strokeColor: Colors.purple.shade400
                 ),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      entry['level'] ?? 'Unknown',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: isDark ? Colors.white : AppColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      "${date.day}/${date.month} • ${_formatTime(date)}",
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: isDark ? Colors.white54 : AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
+              belowBarData: BarAreaData(
+                show: true,
+                color: Colors.purple.withOpacity(0.1),
               ),
-            ],
+            ),
+          ],
+          lineTouchData: LineTouchData(
+            touchTooltipData: LineTouchTooltipData(
+              getTooltipItems: (touchedSpots) {
+                return touchedSpots.map((LineBarSpot touchedSpot) {
+                  final index = touchedSpot.x.toInt();
+                  final data = chartData[index];
+                  final level = data['level'] ?? '';
+                  return LineTooltipItem(
+                    "${touchedSpot.y.toInt()}\n",
+                    const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    children: [
+                      TextSpan(
+                        text: level,
+                        style: const TextStyle(
+                          color: Colors.white70, 
+                          fontSize: 10, 
+                          fontWeight: FontWeight.normal
+                        ),
+                      ),
+                    ],
+                  );
+                }).toList();
+              },
+              tooltipRoundedRadius: 8,
+              tooltipPadding: const EdgeInsets.all(8),
+              tooltipMargin: 8,
+            ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
