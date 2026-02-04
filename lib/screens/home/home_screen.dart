@@ -7,9 +7,6 @@ import '../../core/theme/app_colors.dart';
 import '../../widgets/mindhug_logo.dart';
 import '../profile/profile_screen.dart';
 import '../quiz/mental_health_quiz.dart';
-import '../exercises/exercises_screen.dart';
-import '../journal/journal_screen.dart';
-import '../chatbot/melo_chat_screen.dart';
 import '../../services/notification_service.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -497,9 +494,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 LineChartData(
                   gridData: FlGridData(show: false),
                   titlesData: FlTitlesData(
-                    leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                     bottomTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
@@ -575,13 +572,5 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  String _formatTime(DateTime date) {
-    final hour = date.hour > 12 ? date.hour - 12 : (date.hour == 0 ? 12 : date.hour);
-    final minute = date.minute.toString().padLeft(2, '0');
-    final period = date.hour >= 12 ? 'PM' : 'AM';
-    return "$hour:$minute $period";
-  }
-
 
 }
-
