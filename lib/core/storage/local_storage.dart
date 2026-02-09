@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/journal_entry.dart';
+import '../../models/care_item.dart';
 
 class LocalStorage {
   /// Save quiz result
@@ -15,6 +16,18 @@ class LocalStorage {
     
     // Save to history
     await saveQuizHistory(score, level);
+  }
+
+  /// Get quiz result
+  static Future<Map<String, dynamic>?> getQuizResult() async {
+    final prefs = await SharedPreferences.getInstance();
+    final score = prefs.getInt('quiz_score');
+    final level = prefs.getString('mental_health_level');
+    
+    if (score != null && level != null) {
+      return {'score': score, 'level': level};
+    }
+    return null;
   }
 
   /// Save quiz history entry
@@ -124,5 +137,22 @@ class LocalStorage {
     
     final List<dynamic> jsonList = jsonDecode(jsonString);
     return jsonList.map((e) => JournalEntry.fromJson(e)).toList();
+  }
+
+  /// Save care items
+  static Future<void> saveCareItems(List<CareItem> items) async {
+    final prefs = await SharedPreferences.getInstance();
+    final String jsonString = jsonEncode(items.map((e) => e.toJson()).toList());
+    await prefs.setString('care_items', jsonString);
+  }
+
+  /// Get care items
+  static Future<List<CareItem>> getCareItems() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? jsonString = prefs.getString('care_items');
+    if (jsonString == null) return [];
+    
+    final List<dynamic> jsonList = jsonDecode(jsonString);
+    return jsonList.map((e) => CareItem.fromJson(e)).toList();
   }
 }
