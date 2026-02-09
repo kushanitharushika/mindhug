@@ -28,4 +28,23 @@ class CareItem {
       reminderTime: reminderTime ?? this.reminderTime,
     );
   }
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title': title,
+      'description': description,
+      'isCompleted': isCompleted,
+      'reminderTime': reminderTime,
+    };
+  }
+
+  factory CareItem.fromJson(Map<String, dynamic> json) {
+    return CareItem(
+      id: json['id'],
+      title: json['title'],
+      description: json['description'],
+      isCompleted: json['isCompleted'] ?? false,
+      reminderTime: json['reminderTime'],
+    );
+  }
 }

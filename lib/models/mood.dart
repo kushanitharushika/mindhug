@@ -7,7 +7,8 @@ enum MoodType {
   calm,
   energetic,
   tired,
-  neutral
+  neutral,
+  anxious
 }
 
 class Mood {
@@ -66,6 +67,12 @@ class Mood {
         label: "Tired",
         color: Colors.purple,
         icon: Icons.bedtime,
+      ),
+      const Mood(
+        type: MoodType.anxious,
+        label: "Anxious",
+        color: Colors.orangeAccent,
+        icon: Icons.waves,
       ),
     ];
   }

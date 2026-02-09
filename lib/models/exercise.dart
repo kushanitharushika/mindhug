@@ -3,6 +3,11 @@ enum ExerciseType {
   physical,
   meditation,
   grounding,
+  journaling,
+  music,
+  visualization,
+  social,
+  planning,
   other
 }
 
