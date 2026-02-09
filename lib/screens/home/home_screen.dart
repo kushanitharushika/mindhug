@@ -48,7 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
       
       final savedScore = await LocalStorage.getQuizScore();
       final savedLevel = await LocalStorage.getMentalHealthLevel();
-      List<Map<String, dynamic>> history = await LocalStorage.getQuizHistory();
+      // List<Map<String, dynamic>> history = await LocalStorage.getQuizHistory(); // REMOVED: Using Firestore only
       
       int displayScore = savedScore;
       String displayLevel = savedLevel ?? "Not Checked";
@@ -85,7 +85,7 @@ class _HomeScreenState extends State<HomeScreen> {
           }
           _score = displayScore;
           _level = displayLevel;
-          _history = history;
+          // _history = history; // REMOVED
           _isLoading = false;
         });
       }
