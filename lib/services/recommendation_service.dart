@@ -74,8 +74,6 @@ class RecommendationService {
       
       case MoodType.happy: return 4;
       case MoodType.energetic: return 4; // Map energetic to happy
-      
-      default: return 2;
     }
   }
 
