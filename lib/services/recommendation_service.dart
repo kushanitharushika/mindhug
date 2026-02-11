@@ -7,21 +7,33 @@ import 'package:flutter/foundation.dart';
 class RecommendationService {
   
   // 1. Try to get from ML Engine (Python API)
+  // 1. Try to get from ML Engine (Python API)
   static Future<List<String>> getRecommendations({required String level, required Mood mood}) async {
     try {
-      // Android Emulator uses 10.0.2.2 for "localhost"
-      // iOS Simulator uses 127.0.0.1
-      // Physical device needs real IP
-      const String apiUrl = 'http://10.0.2.2:5000/recommend'; 
-      
+      // Determine base URL based on platform
+      String apiUrl = 'http://127.0.0.1:8000/recommend';
+      try {
+        if (defaultTargetPlatform == TargetPlatform.android) {
+          apiUrl = 'http://10.0.2.2:8000/recommend';
+        }
+      } catch (_) {
+        // Fallback or ignore if platform check fails
+      }
+
+      // Map Inputs to Integers (as expected by ML Model)
+      final int levelInt = _mapLevelToInt(level);
+      final int moodInt = _mapMoodToInt(mood);
+
+      debugPrint("Calling ML API: $apiUrl with Level: $levelInt, Mood: $moodInt");
+
       final response = await http.post(
         Uri.parse(apiUrl),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'level': level,
-          'mood': mood.label, // Using label to match 'Happy', 'Anxious' in Python
+          'level': levelInt,
+          'mood': moodInt,
         }),
-      );
+      ).timeout(const Duration(seconds: 2)); // Short timeout to fallback quickly
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -37,6 +49,34 @@ class RecommendationService {
 
     // 2. Fallback to Local Rules
     return _getLocalRules(level: level, mood: mood);
+  }
+
+  static int _mapLevelToInt(String level) {
+    final l = level.toLowerCase();
+    if (l.contains("level 0") || l.contains("priority")) return 0;
+    if (l.contains("level 1") || l.contains("attention")) return 1;
+    if (l.contains("level 2") || l.contains("managing")) return 2;
+    if (l.contains("level 3") || l.contains("balanced")) return 3;
+    return 2; // Default to 'Managing Well'
+  }
+
+  static int _mapMoodToInt(Mood mood) {
+    switch (mood.type) {
+      case MoodType.anxious: return 0;
+      case MoodType.stressed: return 0; // Map stressed to anxious
+      
+      case MoodType.sad: return 1;
+      case MoodType.tired: return 1; // Map tired to sad/low energy
+      
+      case MoodType.neutral: return 2;
+      
+      case MoodType.calm: return 3;
+      
+      case MoodType.happy: return 4;
+      case MoodType.energetic: return 4; // Map energetic to happy
+      
+      default: return 2;
+    }
   }
 
   // Mapping of Level -> Mood -> Exercise Types (or specific titles)

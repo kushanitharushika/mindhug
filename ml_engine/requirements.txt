@@ -1,4 +1,7 @@
 flask
 pandas
 scikit-learn
+fastapi
+uvicorn
+numpy
 pickle-mixin
