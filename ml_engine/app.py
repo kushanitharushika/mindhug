@@ -1,79 +1,72 @@
-from flask import Flask, request, jsonify
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
 import pickle
 import pandas as pd
+import numpy as np
 
-app = Flask(__name__)
+app = FastAPI()
 
-# Load Model
+# Load Model and Columns
 try:
     with open('model.pkl', 'rb') as f:
         model = pickle.load(f)
-    print("Model loaded successfully.")
-except:
-    print("Model not found. Please run train_model.py first.")
+    with open('model_columns.pkl', 'rb') as f:
+        model_columns = pickle.load(f)
+    print("Model and columns loaded successfully.")
+except FileNotFoundError:
+    print("Error: Model files not found. Run train_model.py first.")
     model = None
+    model_columns = None
 
-@app.route('/recommend', methods=['POST'])
-def recommend():
-    if not model:
-        return jsonify({'error': 'Model not trained'}), 500
+class UserInput(BaseModel):
+    level: int
+    mood: int
 
-    data = request.json
-    level = data.get('level', 'Level 3 - Balanced & Resilient')
-    mood = data.get('mood', 'Neutral')
+@app.get("/")
+def home():
+    return {"message": "Mental Health Recommendation API is Running"}
 
-    # Prepare input for model (needs to match training columns)
-    # We used OneHotEncoding based on pandas get_dummies during training
-    # Ideally, we should save the column structure or encoder too.
-    # For this simple prototype, we'll reconstruct the specific input row.
-    
-    # 1. Create a dummy DataFrame with the same structure as training
-    # (In production, use a saved ColumnTransformer pipeline)
-    
-    # Simple Heuristic Fallback if model logic is complex to reconstruct without pipeline:
-    # Just use the model to predict on a single row dataframe
-    
+@app.post("/recommend")
+def recommend(data: UserInput):
+    if not model or not model_columns:
+        raise HTTPException(status_code=500, detail="Model not loaded. Please train the model first.")
+
     try:
-        # Load columns from training artifact if possible, or hardcode known categories
-        # For simplicity in this script, we'll assume the input is processed similarly
-        # Real ML approach: Pipeline(OneHotEncoder -> Model)
-        
-        # Let's rely on the fact that we can just pass the raw "Label" encoding 
-        # or just implement the logic here directly if we aren't using a complex model.
-        # But user asked for ML. So we will use the model.
-        
-        # We need to recreate the feature vector
-        # A robust way: Save the columns during training.
-        with open('model_columns.pkl', 'rb') as f:
-            model_columns = pickle.load(f)
-            
+        # Prepare input DataFrame
         input_data = pd.DataFrame([{
-            'Level': level,
-            'Mood': mood
+            'level': data.level,
+            'mood': data.mood
         }])
+
+        # Predict probabilities
+        # MultiOutputClassifier with RandomForest returns a list of arrays (one per label)
+        # Each array has shape (n_samples, n_classes). We want the probability of class 1.
         
-        # One-hot encode using the known empty columns structure
-        input_dummies = pd.get_dummies(input_data)
-        input_dummies = input_dummies.reindex(columns=model_columns, fill_value=0)
+        predictions = {}
         
-        prediction = model.predict(input_dummies)
+        # model.predict_proba(X) returns a list of arrays of shape (n_samples, 2)
+        # We need the probability of the positive class (index 1) for each label.
+        probas = model.predict_proba(input_data)
         
-        # The model predicts a string representation of the list (simplified)
-        # Or a class label. Let's say we trained to predict "Exercise_Cluster_ID" or similar.
-        # Actually, for this matrix, multi-label classification or string output is needed.
-        # Let's assume the target was the stringified list of exercises.
+        for i, col_name in enumerate(model_columns):
+            # probas[i] is array [[prob_0, prob_1]] for the i-th label
+            # We take index 0 (first sample) and index 1 (positive class probability)
+            # Handle cases where a label might have only 1 class in training (though rare with RF)
+            if probas[i].shape[1] > 1:
+                prob = probas[i][0][1]
+            else:
+                prob = 0.0 # Should not happen if data is diverse enough
+            
+            predictions[col_name] = prob
+
+        # Sort by probability and take top 5
+        top_5 = sorted(predictions, key=predictions.get, reverse=True)[:5]
         
-        exercises_str = prediction[0]
-        # Clean up string representation if needed, or just return it
-        # Assuming training data target was literally "['Yoga', 'Walking']"
-        
-        import ast
-        exercises_list = ast.literal_eval(exercises_str)
-        
-        return jsonify({'recommendations': exercises_list})
-        
+        return {"recommendations": top_5}
+
     except Exception as e:
-        return jsonify({'error': str(e)}), 400
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    import uvicorn
+    uvicorn.run(app, host='0.0.0.0', port=5000)

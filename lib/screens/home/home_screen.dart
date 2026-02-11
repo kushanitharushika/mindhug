@@ -560,7 +560,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             );
                          }).toList();
                       },
-                       tooltipRoundedRadius: 8,
                        tooltipPadding: const EdgeInsets.all(8),
                     ),
                   ),
