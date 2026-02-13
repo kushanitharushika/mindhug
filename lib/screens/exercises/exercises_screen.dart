@@ -10,6 +10,7 @@ import 'widgets/daily_plan_card.dart';
 import 'widgets/music_player_widget.dart';
 import 'widgets/care_list_widget.dart';
 import 'widgets/exercise_library.dart';
+import 'exercise_detail_screen.dart'; // Import Detail Screen
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../core/storage/local_storage.dart';
@@ -31,13 +32,133 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
   
   // Mock Data Repositories (Ideally these would be in a service)
   final List<Exercise> _repoExercises = [
-    Exercise(id: '1', title: 'Deep Breathing', description: 'Slow, deep breaths to calm down.', duration: '3 mins', type: ExerciseType.breathing, minScore: 0, maxScore: 100),
-    Exercise(id: '2', title: 'Box Breathing', description: 'Inhale 4s, hold 4s, exhale 4s, hold 4s.', duration: '4 mins', type: ExerciseType.breathing, minScore: 0, maxScore: 100),
-    Exercise(id: '3', title: 'Body Scan', description: 'Focus on each part of your body.', duration: '10 mins', type: ExerciseType.meditation, minScore: 20, maxScore: 80),
-    Exercise(id: '4', title: 'Quick Stretch', description: 'Release tension in neck and shoulders.', duration: '5 mins', type: ExerciseType.physical, minScore: 0, maxScore: 100),
-    Exercise(id: '5', title: 'Jumping Jacks', description: 'Get your heart rate up.', duration: '2 mins', type: ExerciseType.physical, minScore: 50, maxScore: 100),
-    Exercise(id: '6', title: 'Grounding 5-4-3-2-1', description: 'Engage your five senses.', duration: '5 mins', type: ExerciseType.grounding, minScore: 0, maxScore: 50),
-    Exercise(id: '7', title: 'Gratitude Journaling', description: 'Write down 3 things you are grateful for.', duration: '5 mins', type: ExerciseType.other, minScore: 30, maxScore: 100),
+    Exercise(
+      id: '1', 
+      title: 'Deep Breathing', 
+      description: 'Slow, deep breaths to calm down.', 
+      duration: '3 mins', 
+      type: ExerciseType.breathing, 
+      minScore: 0, 
+      maxScore: 100,
+      benefits: "Deep breathing activates your parasympathetic nervous system, effectively acting as a 'brake' for stress. It lowers cortisol levels, reduces blood pressure, and sends a signal to your brain that you are safe.",
+      steps: [
+        "Find a comfortable sitting position with your back straight.",
+        "Place one hand on your chest and the other on your belly.",
+        "Inhale deeply through your nose for 4 seconds, feeling your belly expand.",
+        "Hold your breath gently for 2 seconds.",
+        "Exhale slowly through your mouth for 6 seconds, like you're blowing out a candle.",
+        "Repeat this cycle, focusing only on the rhythm of your breath."
+      ]
+    ),
+    Exercise(
+      id: '2', 
+      title: 'Box Breathing', 
+      description: 'Inhale 4s, hold 4s, exhale 4s, hold 4s.', 
+      duration: '4 mins', 
+      type: ExerciseType.breathing, 
+      minScore: 0, 
+      maxScore: 100,
+      benefits: "Used by Navy SEALs, this technique heightens performance and concentration while being a powerful stress reliever. It regulates your autonomic nervous system and brings your mind to the present moment.",
+      steps: [
+        "Inhale through your nose for a count of 4.",
+        "Hold that breath inside for a count of 4.",
+        "Exhale smoothly through your mouth for a count of 4.",
+        "Hold your lungs empty for a count of 4.",
+        "Imagine tracing the sides of a square with each step.",
+        "Continue for 4 minutes to reset your mind."
+      ]
+    ),
+    Exercise(
+      id: '3', 
+      title: 'Body Scan', 
+      description: 'Focus on each part of your body.', 
+      duration: '10 mins', 
+      type: ExerciseType.meditation, 
+      minScore: 20, 
+      maxScore: 80,
+      benefits: "Reconnects your mind with your physical self, helping you identify where you hold tension. This practice reduces physical symptoms of stress and promotes a deep sense of relaxation.",
+      steps: [
+        "Lie down or sit comfortably and close your eyes.",
+        "Take a few deep breaths to center yourself.",
+        "Bring your attention to your toes. Notice any sensation there.",
+        "Slowly move your focus up to your ankles, calves, and knees.",
+        "Continue moving up through your thighs, hips, and stomach.",
+        "Notice any tension and imagine releasing it with each exhale.",
+        "Finish by focusing on your face, relaxing your jaw and forehead."
+      ]
+    ),
+    Exercise(
+      id: '4', 
+      title: 'Quick Stretch', 
+      description: 'Release tension in neck and shoulders.', 
+      duration: '5 mins', 
+      type: ExerciseType.physical, 
+      minScore: 0, 
+      maxScore: 100,
+      benefits: "Physical tension often accumulates in the neck and shoulders during stress. Gentle stretching releases this stored energy, improves circulation to the brain, and provides an immediate mood boost.",
+      steps: [
+        "Sit or stand tall with your shoulders relaxed.",
+        "Gently tilt your right ear toward your right shoulder. Hold for 15s.",
+        "Return to center and repeat on the left side.",
+        "Slowly roll your shoulders backward 5 times.",
+        "Roll your shoulders forward 5 times.",
+        "Clasp your hands behind your back and gently lift to open your chest.",
+        "Shake out your hands and arms to release any lingering tension."
+      ]
+    ),
+    Exercise(
+      id: '5', 
+      title: 'Jumping Jacks', 
+      description: 'Get your heart rate up.', 
+      duration: '2 mins', 
+      type: ExerciseType.physical, 
+      minScore: 50, 
+      maxScore: 100,
+      benefits: "A quick burst of cardio releases endorphins, the body's natural 'feel-good' chemicals. It breaks the cycle of lethargy and instantly boosts your energy and mental clarity.",
+      steps: [
+        "Stand upright with your legs together and arms at your sides.",
+        "Bend your knees slightly and jump into the air.",
+        "Spread your legs shoulder-width apart and stretch your arms out and over your head.",
+        "Jump back to the starting position.",
+        "Find a steady rhythm and keep going!",
+        "Smile while you do it – it actually helps!"
+      ]
+    ),
+    Exercise(
+      id: '6', 
+      title: 'Grounding 5-4-3-2-1', 
+      description: 'Engage your five senses.', 
+      duration: '5 mins', 
+      type: ExerciseType.grounding, 
+      minScore: 0, 
+      maxScore: 50,
+      benefits: "This is a classic anxiety-reduction technique. By engaging your five senses, you pull your brain out of spiraling thoughts and anchor yourself firmly in the present reality.",
+      steps: [
+        "Look around and name 5 things you can see.",
+        "Notice 4 things you can physically feel (feet on floor, clothes on skin).",
+        "Listen for 3 distinct sounds tailored to your environment.",
+        "Identify 2 things you can smell (or recall 2 favorite scents).",
+        "Name 1 thing you can taste (or a taste you like)."
+      ]
+    ),
+    Exercise(
+      id: '7', 
+      title: 'Gratitude Journaling', 
+      description: 'Write down 3 things you are grateful for.', 
+      duration: '5 mins', 
+      type: ExerciseType.other, 
+      minScore: 30, 
+      maxScore: 100,
+      benefits: "Shift your focus from what's missing to what's present. Practicing gratitude is scientifically proven to improve sleep, mood, and immunity by rewiring your brain to scan for the positive.",
+      steps: [
+        "Grab a pen and paper or open a notes app.",
+        "Take a moment to reflect on your day or week.",
+        "Write down 3 things that made you smile or feel safe.",
+        "They can be small: a warm coffee, a kind text, or the sunshine.",
+        "Briefly write *why* you are grateful for each one.",
+        "Read them back to yourself and feel the appreciation."
+      ]
+    ),
   ];
 
   final List<MusicTrack> _repoMusic = [
@@ -226,6 +347,15 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
     LocalStorage.saveCareItems(_careItems); // Save state
   }
 
+  void _navigateToExercise(Exercise exercise) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ExerciseDetailScreen(exercise: exercise),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -351,9 +481,7 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
                               description: "${ex.duration} • ${ex.type.name.toUpperCase()}",
                               icon: _getIconForType(ex.type),
                               color: _selectedMood!.color,
-                              onTap: () {
-                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Starting ${ex.title}...")));
-                              },
+                              onTap: () => _navigateToExercise(ex), // Changed to navigation
                               onSkip: () {
                                  setState(() {
                                    _todayPlan.remove(ex);
@@ -385,9 +513,7 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
                    const SizedBox(height: 16),
                   ExerciseLibraryWidget(
                     exercises: _allExercises,
-                    onExerciseTap: (ex) {
-                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Selected ${ex.title}")));
-                    },
+                    onExerciseTap: (ex) => _navigateToExercise(ex), // Changed to navigation
                   ),
                   const SizedBox(height: 100), // Bottom padding for nav bar
                   ]),
