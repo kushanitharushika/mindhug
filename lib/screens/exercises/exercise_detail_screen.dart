@@ -4,7 +4,7 @@ import '../../core/theme/app_colors.dart';
 import '../../models/exercise.dart';
 import 'package:vibration/vibration.dart';
 import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
-import 'widgets/exercise_library.dart'; // For Duration parsing helper if needed, or implement locally
+
 
 class ExerciseDetailScreen extends StatefulWidget {
   final Exercise exercise;
@@ -71,7 +71,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> with Single
 
   Future<void> _triggerFeedback() async {
     // Vibrate 3 times: [wait, vibrate, wait, vibrate, ...]
-    if (await Vibration.hasVibrator() ?? false) {
+    if (await Vibration.hasVibrator()) {
       Vibration.vibrate(pattern: [0, 500, 200, 500, 200, 500]);
     }
     // Sound
