@@ -4,7 +4,13 @@ import pickle
 import pandas as pd
 import numpy as np
 
+# Chatbot imports
+from chatbot_logic import ChatbotLogic
+
 app = FastAPI()
+
+# Initialize Chatbot
+chatbot = ChatbotLogic()
 
 # Load Model and Columns
 try:
@@ -66,6 +72,14 @@ def recommend(data: UserInput):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+class ChatInput(BaseModel):
+    message: str
+
+@app.post("/chat")
+def chat(data: ChatInput):
+    response = chatbot.get_response(data.message)
+    return {"response": response}
 
 if __name__ == '__main__':
     import uvicorn
