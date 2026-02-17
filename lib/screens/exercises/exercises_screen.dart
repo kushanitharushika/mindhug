@@ -159,6 +159,189 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
         "Read them back to yourself and feel the appreciation."
       ]
     ),
+    Exercise(
+      id: '8',
+      title: 'Gentle Yoga',
+      description: 'Slow movements to release body tension.',
+      duration: '10 mins',
+      type: ExerciseType.physical,
+      minScore: 0,
+      maxScore: 80,
+      benefits: "Combines physical movement with breath awareness to lower cortisol levels. It releases stored physical tension, improves flexibility, and calms the nervous system.",
+      steps: [
+        "Start in Child's Pose: Kneel, sit back on heels, stretch arms forward.",
+        "Move to Cat-Cow: On hands and knees, arch back (Cow) then round spine (Cat).",
+        "Transition to Downward Dog: Lift hips high, pedal out your feet.",
+        "Step forward into a gentle Forward Fold, letting your head hang heavy.",
+        "Slowly roll up to standing and reach arms overhead.",
+        "Finish with 1 minute of Savasana (corpse pose) lying flat on your back."
+      ]
+    ),
+    Exercise(
+      id: '9',
+      title: 'Walking',
+      description: 'A brisk walk to clear your mind.',
+      duration: '15 mins',
+      type: ExerciseType.physical,
+      minScore: 0,
+      maxScore: 100,
+      benefits: "Walking, especially in nature, reduces rumination (repetitive negative thoughts). The rhythmic movement and optical flow processing help quiet the brain's detailed-oriented centers.",
+      steps: [
+        "Put on comfortable shoes.",
+        "Step outside or find a clear path indoors.",
+        "Start at a comfortable pace, noticing the sensation of your feet hitting the ground.",
+        "Focus your eyes on the horizon or trees, rather than looking down.",
+        "If thoughts intrude, gently bring your focus back to your footsteps.",
+        "Pick up the pace slightly for the last 5 minutes to boost endorphins."
+      ]
+    ),
+    Exercise(
+      id: '10',
+      title: '4-7-8 Breathing',
+      description: 'Inhale 4s, hold 7s, exhale 8s.',
+      duration: '5 mins',
+      type: ExerciseType.breathing,
+      minScore: 0,
+      maxScore: 100,
+      benefits: "A natural tranquilizer for the nervous system. The long exhale activates the vagus nerve, signaling your body to rest and digest, making it perfect for anxiety or sleep.",
+      steps: [
+        "Exhale completely through your mouth.",
+        "Close your mouth and inhale quietly through your nose to a count of 4.",
+        "Hold your breath for a count of 7.",
+        "Exhale completely through your mouth, making a whoosh sound to a count of 8.",
+        "This is one breath. Repeat the cycle 3 more times.",
+        "Let your breath return to natural rhythm."
+      ]
+    ),
+    Exercise(
+      id: '11',
+      title: 'Progressive Muscle Relaxation',
+      description: 'Tense and relax muscle groups.',
+      duration: '10 mins',
+      type: ExerciseType.grounding,
+      minScore: 0,
+      maxScore: 60,
+      benefits: "Teaches you to recognize the difference between tension and relaxation. By systematically tensing and releasing muscles, you can physically force your body into a state of calm.",
+      steps: [
+        "Lie down comfortably.",
+        "Start with your feet: curl your toes tight for 5s, then release instantly.",
+        "Move to calves: flex them hard for 5s, then let go.",
+        "Continue up to your thighs, buttocks, and stomach.",
+        "Clench your hands into fists, shrug shoulders to ears, then drop them.",
+        "Scrunch your face tight, then relax your jaw and eyes.",
+        "Feel the wave of heaviness and relaxation wash over you."
+      ]
+    ),
+    Exercise(
+      id: '12',
+      title: 'Pilates Core Focus',
+      description: 'Strengthen core and improve posture.',
+      duration: '15 mins',
+      type: ExerciseType.physical,
+      minScore: 0,
+      maxScore: 100,
+      benefits: "Pilates builds a strong foundation for movement. It improves core stability, aligns the spine, and connects deep abdominal muscles, which boosts overall confidence and physical resilience.",
+      steps: [
+        "Lie on your back, knees bent, feet flat on the floor.",
+        "Engage your core by drawing your belly button to your spine.",
+        "Lift knees to tabletop position (90 degrees).",
+        "Perform 'The Hundred': Pump arms by sides while breathing rhythmically.",
+        "Extend legs to 45 degrees if comfortable.",
+        "Transition to 'Single Leg Stretch', alternating hugging knees.",
+        "Finish with a gentle spine stretch forward."
+      ]
+    ),
+    Exercise(
+      id: '13',
+      title: 'Free Dance Flow',
+      description: 'Move your body to the rhythm.',
+      duration: '5 mins',
+      type: ExerciseType.physical,
+      minScore: 50,
+      maxScore: 100,
+      benefits: "Dancing releases dopamine and endorphins. Moving freely without judgment helps release trapped emotions, boosts creativity, and provides a powerful outlet for stress energy.",
+      steps: [
+        "Put on your favorite upbeat song.",
+        "Stand in a clear space.",
+        "Start by just swaying your hips.",
+        "Let your arms move however they want.",
+        "Don't worry about looking cool—focus on how it feels.",
+        "Shake out your whole body at the end to release tension."
+      ]
+    ),
+    Exercise(
+      id: '14',
+      title: 'Peaceful Visualization',
+      description: 'Imagine a safe, calm place.',
+      duration: '10 mins',
+      type: ExerciseType.visualization,
+      minScore: 0,
+      maxScore: 100,
+      benefits: "Visualization tricks the brain into believing you are actually in a calm environment. This mental escape lowers heart rate and blood pressure, providing a deep psychological rest.",
+      steps: [
+        "Find a quiet comfortable spot and close your eyes.",
+        "Imagine a place where you feel perfectly safe (beach, forest, room).",
+        "What do you see? (Colors, light, objects)",
+        "What do you hear? (Waves, birds, silence)",
+        "What do you smell? (Salt air, pine, rain)",
+        "Stay in this place, soaking up the feeling of safety.",
+        "Slowly bring yourself back when you are ready."
+      ]
+    ),
+    Exercise(
+      id: '15',
+      title: 'Social Connection',
+      description: 'Reach out to someone you trust.',
+      duration: '10 mins',
+      type: ExerciseType.social,
+      minScore: 30,
+      maxScore: 80,
+      benefits: "Social connection triggers oxytocin, the 'love hormone'. Even a brief text or call can reduce feelings of isolation and remind you that you are supported and valued.",
+      steps: [
+        "Scroll through your contacts.",
+        "Choose one friend or family member you haven't spoken to lately.",
+        "Send a simple text: 'Thinking of you' or 'How are you?'.",
+        "Or, make a quick 5-minute phone call.",
+        "Focus on listening to their voice.",
+        "Allow yourself to feel connected and less alone."
+      ]
+    ),
+    Exercise(
+      id: '16',
+      title: 'Goal Setting Session',
+      description: 'Plan your next small steps.',
+      duration: '10 mins',
+      type: ExerciseType.planning,
+      minScore: 40,
+      maxScore: 100,
+      benefits: "Breaking undefined worries into concrete tasks reduces anxiety. Planning gives you a sense of control and agency, turning a mountain of stress into climbable steps.",
+      steps: [
+        "Open a notebook or your phone's calendar.",
+        "Identify one main goal or stressor for the week.",
+        "Break it down into 3 tiny, manageable steps.",
+        "Schedule exactly when you will do step 1.",
+        "Write down a potential obstacle and how you'll handle it.",
+        "Close the book and trust the plan."
+      ]
+    ),
+    Exercise(
+      id: '17',
+      title: 'Mindful Music Listening',
+      description: 'Truly listen to a song.',
+      duration: '5 mins',
+      type: ExerciseType.music,
+      minScore: 0,
+      maxScore: 100,
+      benefits: "Active listening serves as a meditation anchor. Music directly impacts the limbic system (emotional brain), capable of shifting your mood faster than almost any other stimulus.",
+      steps: [
+        "Put on headphones for the best experience.",
+        "Choose a song that matches the mood you WANT to feel.",
+        "Close your eyes and press play.",
+        "Try to pick out individual instruments (bass, drums, melody).",
+        "Notice how the music physically feels in your ears.",
+        "If your mind wanders, come back to the bassline."
+      ]
+    ),
   ];
 
   final List<MusicTrack> _repoMusic = [
@@ -238,26 +421,81 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
     setState(() {
       // 2. Map Titles to Exercise Objects (Creating dynamic ones if not in repo)
       List<Exercise> plan = recommendedTitles.map((title) {
-        // Find valid exercise in repo
-        try {
-          return _repoExercises.firstWhere((e) => e.title.toLowerCase() == title.toLowerCase());
-        } catch (e) {
-          // If not found in repo, create a placeholder dynamic exercise
-          return Exercise(
-            id: 'dyn_${title.hashCode}',
-            title: title,
-            description: 'Recommended for your current state.',
-            duration: '5-10 mins',
-            type: _guessType(title), // Helper to guess type
-            minScore: 0, 
-            maxScore: 100
-          );
-        }
+        final match = _findExerciseInRepo(title);
+        if (match != null) return match;
+
+        // If not found in repo, create a placeholder dynamic exercise
+        return Exercise(
+          id: 'dyn_${title.hashCode}',
+          title: title,
+          description: 'Recommended for your current state.',
+          duration: '5-10 mins',
+          type: _guessType(title), // Helper to guess type
+          minScore: 0, 
+          maxScore: 100
+        );
       }).toList();
       
       // Take top 3 for the "Little Plan"
       _todayPlan = plan.take(3).toList();
     });
+  }
+
+  Exercise? _findExerciseInRepo(String title) {
+    final t = title.toLowerCase();
+    try {
+      return _repoExercises.firstWhere((e) {
+        final r = e.title.toLowerCase();
+        
+        // 1. Exact match
+        if (r == t) return true;
+        
+        // 2. Comprehensive Fuzzy Matching
+        
+        // Yoga / Stretching
+        if ((t.contains('yoga') || t.contains('stretch') || t.contains('mobility') || t.contains('cat-cow') || t.contains('fold') || t.contains('twist')) && r == 'gentle yoga') return true;
+        
+        // Walking / Nature
+        if ((t.contains('walk') || t.contains('nature') || t.contains('sun')) && r == 'walking') return true;
+        
+        // Breathing (Specifics first, then general)
+        if (t.contains('box') && r == 'box breathing') return true;
+        if (t.contains('4-7-8') && r == '4-7-8 breathing') return true;
+        if ((t.contains('breath') || t.contains('respira')) && r == 'deep breathing') return true;
+        
+        // Body Scan / Relaxation
+        if ((t.contains('scan') || t.contains('warm')) && r == 'body scan') return true;
+        if ((t.contains('muscle') && t.contains('relax')) && r == 'progressive muscle relaxation') return true;
+        
+        // Grounding
+        if ((t.contains('ground') || t.contains('senses')) && r == 'grounding 5-4-3-2-1') return true;
+        
+        // Journaling / Mental
+        if ((t.contains('journal') || t.contains('writ') || t.contains('gratitude') || t.contains('affirmation') || t.contains('reflection') || t.contains('intention')) && r == 'gratitude journaling') return true;
+        
+        // Physical / Core / Strength
+        if ((t.contains('pilates') || t.contains('core') || t.contains('strength') || t.contains('balance') || t.contains('posture')) && r == 'pilates core focus') return true;
+        
+        // High Energy / Dance / Cardio
+        if ((t.contains('dance') || t.contains('cardio') || t.contains('hiit') || t.contains('run') || t.contains('workout') || t.contains('fitness')) && r == 'free dance flow') return true;
+        
+        // Visualization / Meditation / Calm
+        if ((t.contains('visualiz') || t.contains('imagin') || t.contains('meditat') || t.contains('sitting') || t.contains('detox') || t.contains('rest')) && r == 'peaceful visualization') return true;
+        
+        // Social
+        if ((t.contains('social') || t.contains('connect') || t.contains('friend') || t.contains('shar') || t.contains('talk')) && r == 'social connection') return true;
+        
+        // Planning
+        if ((t.contains('plan') || t.contains('goal') || t.contains('task') || t.contains('check-in') || t.contains('prep')) && r == 'goal setting session') return true;
+        
+        // Music
+        if ((t.contains('music') || t.contains('sound') || t.contains('listen') || t.contains('song') || t.contains('playlist') || t.contains('noise')) && r == 'mindful music listening') return true;
+
+        return false;
+      });
+    } catch (_) {
+      return null;
+    }
   }
   
   ExerciseType _guessType(String title) {
