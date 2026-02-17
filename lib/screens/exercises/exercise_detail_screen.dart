@@ -208,38 +208,92 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> with Single
                       final index = entry.key + 1;
                       final step = entry.value;
                       return Padding(
-                        padding: const EdgeInsets.only(bottom: 12.0),
-                        child: Row(
+                        padding: const EdgeInsets.only(bottom: 16.0),
+                        child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Container(
-                              width: 24,
-                              height: 24,
-                              decoration: BoxDecoration(
-                                color: isDark ? Colors.white10 : Colors.grey.shade200,
-                                shape: BoxShape.circle,
-                              ),
-                              alignment: Alignment.center,
-                              child: Text(
-                                "$index",
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: textColor,
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  width: 24,
+                                  height: 24,
+                                  decoration: BoxDecoration(
+                                    color: isDark ? Colors.white10 : Colors.grey.shade200,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    "$index",
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: textColor,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    step.text,
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      height: 1.4,
+                                      color: isDark ? Colors.white70 : AppColors.textPrimary,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            if (step.imageUrl != null) ...[
+                              const SizedBox(height: 12),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Image.network(
+                                  step.imageUrl!,
+                                  height: 180,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                  loadingBuilder: (context, child, loadingProgress) {
+                                    if (loadingProgress == null) return child;
+                                    return Container(
+                                      height: 180,
+                                      width: double.infinity,
+                                      color: isDark ? Colors.white10 : Colors.grey.shade100,
+                                      alignment: Alignment.center,
+                                      child: CircularProgressIndicator(
+                                        value: loadingProgress.expectedTotalBytes != null
+                                            ? loadingProgress.cumulativeBytesLoaded / 
+                                                loadingProgress.expectedTotalBytes!
+                                            : null,
+                                      ),
+                                    );
+                                  },
+                                  errorBuilder: (ctx, err, stack) {
+                                    return Container(
+                                    height: 180,
+                                    width: double.infinity,
+                                    color: isDark ? Colors.white10 : Colors.grey.shade100,
+                                    alignment: Alignment.center,
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        const Icon(Icons.broken_image, color: Colors.grey),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          "Could not load image",
+                                          style: TextStyle(
+                                            color: isDark ? Colors.white54 : Colors.grey,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                  },
                                 ),
                               ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                step,
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  height: 1.4,
-                                  color: isDark ? Colors.white70 : AppColors.textPrimary,
-                                ),
-                              ),
-                            ),
+                            ],
                           ],
                         ),
                       );
@@ -306,12 +360,14 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> with Single
         children: [
           if (_isActive)
             FloatingActionButton.large(
+              heroTag: "fab_timer",
               onPressed: _stopTimer,
               backgroundColor: Colors.orangeAccent,
               child: const Icon(Icons.pause, size: 40, color: Colors.white),
             )
           else
             FloatingActionButton.large(
+              heroTag: "fab_timer",
               onPressed: _isCompleted ? null : _startTimer,
               backgroundColor: _isCompleted ? Colors.grey : AppColors.success,
               child: Icon(
@@ -324,6 +380,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> with Single
           const SizedBox(width: 20),
           
           FloatingActionButton(
+            heroTag: "fab_reset",
             onPressed: _resetTimer,
             backgroundColor: isDark ? Colors.white10 : Colors.white,
             foregroundColor: isDark ? Colors.white : Colors.grey,

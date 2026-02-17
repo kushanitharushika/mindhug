@@ -11,6 +11,13 @@ enum ExerciseType {
   other
 }
 
+class ExerciseStep {
+  final String text;
+  final String? imageUrl;
+  
+  ExerciseStep({required this.text, this.imageUrl});
+}
+
 class Exercise {
   final String id;
   final String title;
@@ -21,7 +28,7 @@ class Exercise {
   final String? imageUrl;
   final int minScore; // For mental health score filtering
   final int maxScore;
-  final List<String> steps;
+  final List<ExerciseStep> steps;
   final String benefits;
 
   Exercise({
@@ -34,9 +41,18 @@ class Exercise {
     this.imageUrl,
     this.minScore = 0,
     this.maxScore = 100,
-    this.steps = const [],
+    List<dynamic> steps = const [], // Accepts String or ExerciseStep
     this.benefits = '',
-  });
+  }) : steps = steps.map((s) {
+          if (s is ExerciseStep) return s;
+          if (s is Map) {
+             return ExerciseStep(
+               text: s['text'] ?? '', 
+               imageUrl: s['imageUrl']
+             );
+          }
+          return ExerciseStep(text: s.toString());
+        }).toList();
 
   factory Exercise.fromMap(Map<String, dynamic> map, String id) {
     return Exercise(
@@ -49,7 +65,15 @@ class Exercise {
       imageUrl: map['imageUrl'],
       minScore: map['minScore'] ?? 0,
       maxScore: map['maxScore'] ?? 100,
-      steps: List<String>.from(map['steps'] ?? []),
+      steps: (map['steps'] as List<dynamic>?)?.map((s) {
+         if (s is Map) {
+           return ExerciseStep(
+             text: s['text'] ?? '', 
+             imageUrl: s['imageUrl']
+           );
+         }
+         return s.toString(); // Handled by constructor
+      }).toList() ?? [],
       benefits: map['benefits'] ?? '',
     );
   }
