@@ -15,6 +15,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../core/storage/local_storage.dart';
 import '../../services/recommendation_service.dart';
+import '../../services/notification_service.dart';
 
 class ExercisesScreen extends StatefulWidget {
   const ExercisesScreen({super.key});
@@ -393,10 +394,21 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
       } else {
         // Default items if none saved
         _careItems = [
-          CareItem(id: 'c1', title: 'Drink Timer', description: 'Drink a glass of water', reminderTime: 'Hourly'),
+          CareItem(id: 'c1', title: 'Drink Timer', description: '8 glasses daily for mental wellbeing', reminderTime: 'Every 2 hours', type: 'counter', maxProgress: 8),
           CareItem(id: 'c2', title: 'Screen Break', description: 'Look away from screen for 20s', reminderTime: 'Every 20m'),
           CareItem(id: 'c3', title: 'Posture Check', description: 'Sit up straight', reminderTime: 'Every 30m'),
         ];
+      }
+      
+      // Schedule reminder if Drink Timer is active
+      if (_careItems.any((c) => c.title == 'Drink Timer' && !c.isCompleted)) {
+        NotificationService().scheduleTwoHourNotification(
+          id: 1001, 
+          title: "Stay Hydrated 💧", 
+          body: "Time for a glass of water to support your mental wellbeing!"
+        );
+      } else if (_careItems.any((c) => c.title == 'Drink Timer' && c.isCompleted)) {
+        NotificationService().cancelNotification(1001); // Cancel if target met
       }
     });
   }
@@ -438,6 +450,39 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
       
       // Take top 3 for the "Little Plan"
       _todayPlan = plan.take(3).toList();
+      
+      // Update Drink Target based on Mood & Plan
+      _recalculateDrinkTarget(mood, _todayPlan);
+    });
+  }
+
+  void _recalculateDrinkTarget(Mood mood, List<Exercise> plan) {
+    int target = 8; // Base target
+    
+    // 1. Mood rules
+    if (mood.type == MoodType.stressed || mood.type == MoodType.anxious) {
+      target += 1; // +1 for stress/anxiety
+    }
+    
+    // 2. Physical activity rules
+    bool hasPhysical = plan.any((ex) => ex.type == ExerciseType.physical);
+    if (hasPhysical) {
+      target += 1; // +1-2 for exercise, leaning conservative with +1
+    }
+    
+    // Update the CareItem
+    setState(() {
+      final idx = _careItems.indexWhere((item) => item.title == 'Drink Timer');
+      if (idx != -1) {
+        // Only update if the logic changed the target
+        if (_careItems[idx].maxProgress != target) {
+          _careItems[idx] = _careItems[idx].copyWith(
+            maxProgress: target,
+            description: '$target glasses today 💧',
+          );
+          LocalStorage.saveCareItems(_careItems);
+        }
+      }
     });
   }
 
@@ -585,6 +630,35 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
     LocalStorage.saveCareItems(_careItems); // Save state
   }
 
+  void _updateCareItemProgress(String id, int progress) {
+    setState(() {
+      final index = _careItems.indexWhere((item) => item.id == id);
+      if (index != -1) {
+        final item = _careItems[index];
+        final newProgress = progress.clamp(0, item.maxProgress);
+        final isNowDone = newProgress >= item.maxProgress;
+        
+        _careItems[index] = item.copyWith(
+          currentProgress: newProgress,
+          isCompleted: isNowDone,
+        );
+
+        // Cancel the water reminder if done
+        if (item.title == 'Drink Timer' && isNowDone) {
+          NotificationService().cancelNotification(1001);
+        } else if (item.title == 'Drink Timer' && !isNowDone) {
+          // Re-enable if they undo the action
+          NotificationService().scheduleTwoHourNotification(
+            id: 1001, 
+            title: "Stay Hydrated 💧", 
+            body: "Time for a glass of water to support your mental wellbeing!"
+          );
+        }
+      }
+    });
+    LocalStorage.saveCareItems(_careItems);
+  }
+
   void _navigateToExercise(Exercise exercise) {
     Navigator.push(
       context,
@@ -667,6 +741,7 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
                     child: CareListWidget(
                       items: _careItems,
                       onToggle: _toggleCareItem,
+                      onProgressUpdate: _updateCareItemProgress,
                       onAdd: _addCareItem,
                       onDelete: _deleteCareItem,
                     ),
@@ -727,11 +802,6 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
                               },
                             ),
                           )),
-                          
-                          if (_currentTrack != null) ...[
-                             const SizedBox(height: 12),
-                             MusicPlayerWidget(track: _currentTrack!),
-                          ],
                         ],
                       ),
                     ),
