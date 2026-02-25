@@ -1,5 +1,7 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import '../../models/chat_message.dart';
+import '../../services/chatbot_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../widgets/melo_logo.dart';
 
@@ -11,12 +13,12 @@ class MindHugChatbot extends StatefulWidget {
 }
 
 class _MindHugChatbotState extends State<MindHugChatbot> {
-  final List<ChatMessage> messages = [
+  final List<ChatMessage> messages = List.from([
     ChatMessage(
       text: "Hi 🌸 I’m Melo. I’m here to listen. How are you feeling today?",
       isUser: false,
     ),
-  ];
+  ]);
 
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
@@ -34,19 +36,29 @@ class _MindHugChatbotState extends State<MindHugChatbot> {
     });
   }
 
+  final ChatbotService _chatbotService = ChatbotService();
+
   Future<void> _sendBotResponse(String userText) async {
     setState(() => _isTyping = true);
-    await Future.delayed(const Duration(milliseconds: 900));
-    setState(() {
-      messages.add(
-        ChatMessage(
-          text: "I hear you 🤍 Take a deep breath. Want to talk more?",
-          isUser: false,
-        ),
-      );
-      _isTyping = false;
-    });
-    await _scrollToBottom();
+    
+    // Simulate thinking delay
+    final delay = Random().nextInt(1000) + 500;
+    await Future.delayed(Duration(milliseconds: delay));
+    
+    final response = await _chatbotService.getResponse(userText);
+
+    if (mounted) {
+      setState(() {
+        messages.add(
+          ChatMessage(
+            text: response,
+            isUser: false,
+          ),
+        );
+        _isTyping = false;
+      });
+      await _scrollToBottom();
+    }
   }
 
   void sendMessage() {
