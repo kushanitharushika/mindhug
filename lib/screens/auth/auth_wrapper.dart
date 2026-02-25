@@ -4,6 +4,8 @@ import '../../services/auth_service.dart';
 import '../../widgets/bottom_nav.dart';
 import 'login_screen.dart';
 import '../loading/loading_screen.dart';
+import '../../core/storage/local_storage.dart';
+import '../quiz/mental_health_quiz.dart';
 
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});
@@ -20,10 +22,32 @@ class AuthWrapper extends StatelessWidget {
         }
         
         if (snapshot.hasData) {
-          return const BottomNav();
+          return const QuizGuard();
         }
         
         return const LoginScreen();
+      },
+    );
+  }
+}
+
+class QuizGuard extends StatelessWidget {
+  const QuizGuard({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<bool>(
+      future: LocalStorage.isQuizDue(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return LoadingScreen(onFinish: () {});
+        }
+        
+        if (snapshot.data == true) {
+          return const MentalHealthQuiz(isForced: true);
+        }
+        
+        return const BottomNav();
       },
     );
   }
