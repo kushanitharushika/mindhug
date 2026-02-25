@@ -8,7 +8,8 @@ import '../../core/storage/local_storage.dart';
 import '../../widgets/app_scaffold.dart';
 
 class MentalHealthQuiz extends StatefulWidget {
-  const MentalHealthQuiz({super.key});
+  final bool isForced;
+  const MentalHealthQuiz({super.key, this.isForced = false});
 
   @override
   State<MentalHealthQuiz> createState() => _MentalHealthQuizState();
@@ -140,6 +141,13 @@ class _MentalHealthQuizState extends State<MentalHealthQuiz> {
 
   @override
   Widget build(BuildContext context) {
+    return PopScope(
+      canPop: !widget.isForced,
+      child: _buildContent(context),
+    );
+  }
+
+  Widget _buildContent(BuildContext context) {
     if (_isLoading) {
        return const AppScaffold(
          child: Center(child: CircularProgressIndicator()),
@@ -166,6 +174,19 @@ class _MentalHealthQuizState extends State<MentalHealthQuiz> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (widget.isForced) ...[
+              const Padding(
+                padding: EdgeInsets.only(bottom: 24.0, top: 12.0),
+                child: Text(
+                  "It's time for your weekly check-in 💜\nLet's see how you're feeling.",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.purple,
+                  ),
+                ),
+              ),
+            ],
             Text(
               "Question ${currentQuestion + 1}/${_selectedQuestions.length}",
               style: const TextStyle(fontSize: 16),

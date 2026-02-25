@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/journal_entry.dart';
 import '../../models/care_item.dart';
@@ -75,6 +76,29 @@ class LocalStorage {
   static Future<bool> isQuizCompleted() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool('quiz_completed') ?? false;
+  }
+
+  /// Check if quiz is due (older than 7 days or not taken yet)
+  static Future<bool> isQuizDue() async {
+    final history = await getQuizHistory();
+    if (history.isEmpty) {
+      return true; // Never taken
+    }
+    
+    // History is stored chronologically, so last item is the most recent
+    final lastEntry = history.last;
+    final dateStr = lastEntry['date'] as String?;
+    
+    if (dateStr == null) return true;
+
+    try {
+      final lastTakeDate = DateTime.parse(dateStr);
+      final difference = DateTime.now().difference(lastTakeDate);
+      return difference.inDays >= 7;
+    } catch (e) {
+      debugPrint("Error parsing quiz date in isQuizDue: $e");
+      return true; // Fallback to forcing it if data is corrupt
+    }
   }
 
   /// Get stored quiz score
