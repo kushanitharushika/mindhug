@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class ChatbotService {
@@ -19,11 +20,11 @@ class ChatbotService {
         final data = jsonDecode(response.body);
         return data['response'] as String;
       } else {
-        print('Error fetching response: ${response.statusCode}');
+        debugPrint('Error fetching response: ${response.statusCode}');
         return "I'm having a bit of trouble connecting right now. Can we try again later?";
       }
     } catch (e) {
-      print('Error connecting to chatbot backend: $e');
+      debugPrint('Error connecting to chatbot backend: $e');
       return "I seem to be offline. Please check your connection.";
     }
   }

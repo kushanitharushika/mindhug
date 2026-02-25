@@ -3,11 +3,9 @@ import '../../core/theme/app_colors.dart';
 import '../../widgets/mindhug_logo.dart';
 import '../../models/mood.dart';
 import '../../models/exercise.dart';
-import '../../models/music_track.dart';
 import '../../models/care_item.dart';
 import 'widgets/mood_check_in.dart';
 import 'widgets/daily_plan_card.dart';
-import 'widgets/music_player_widget.dart';
 import 'widgets/care_list_widget.dart';
 import 'widgets/exercise_library.dart';
 import 'exercise_detail_screen.dart'; // Import Detail Screen
@@ -27,7 +25,6 @@ class ExercisesScreen extends StatefulWidget {
 class _ExercisesScreenState extends State<ExercisesScreen> {
   Mood? _selectedMood;
   List<Exercise> _todayPlan = [];
-  MusicTrack? _currentTrack;
   List<CareItem> _careItems = [];
   List<Exercise> _allExercises = [];
   
@@ -345,13 +342,6 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
     ),
   ];
 
-  final List<MusicTrack> _repoMusic = [
-    MusicTrack(id: 'm1', title: 'Forest Rain', artist: 'Nature Sounds', url: '', mood: MusicMood.calm, duration: '10:00'),
-    MusicTrack(id: 'm2', title: 'Upbeat Lo-Fi', artist: 'Chill Beats', url: '', mood: MusicMood.uplifting, duration: '3:00'),
-    MusicTrack(id: 'm3', title: 'Ocean Waves', artist: 'Deep Sleep', url: '', mood: MusicMood.sleep, duration: '15:00'),
-    MusicTrack(id: 'm4', title: 'Piano Focus', artist: 'Study Time', url: '', mood: MusicMood.focus, duration: '45:00'),
-  ];
-  
   String _userLevel = "Level 3 - Balanced & Resilient"; // Default
 
   @override
@@ -417,7 +407,6 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
     setState(() {
       _selectedMood = mood;
       _generateSmartPlan(mood);
-      _selectMusicForMood(mood);
     });
   }
 
@@ -575,33 +564,6 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
     
     return ExerciseType.other;
   }
-
-  void _selectMusicForMood(Mood mood) {
-    // Map MoodType to MusicMood
-    MusicMood targetMusicMood;
-    switch (mood.type) {
-      case MoodType.stressed:
-      case MoodType.sad:
-      case MoodType.calm:
-      case MoodType.anxious:
-      case MoodType.tired:
-        targetMusicMood = MusicMood.calm;
-        break;
-      case MoodType.energetic:
-      case MoodType.happy:
-        targetMusicMood = MusicMood.uplifting;
-        break;
-      default:
-        targetMusicMood = MusicMood.focus;
-    }
-    
-    try {
-      _currentTrack = _repoMusic.firstWhere((m) => m.mood == targetMusicMood);
-    } catch (_) {
-      _currentTrack = _repoMusic.first;
-    }
-  }
-
   void _addCareItem(String title) {
     setState(() {
       _careItems.add(CareItem(
