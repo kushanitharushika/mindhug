@@ -24,6 +24,15 @@ except FileNotFoundError:
     model = None
     model_columns = None
 
+# Load Stroop Model
+try:
+    with open('stroop_rf_model.pkl', 'rb') as f:
+        stroop_model = pickle.load(f)
+    print("Stroop model loaded successfully.")
+except FileNotFoundError:
+    print("Warning: Stroop model not found.")
+    stroop_model = None
+
 class UserInput(BaseModel):
     level: int
     mood: int
@@ -72,6 +81,30 @@ def recommend(data: UserInput):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+class StroopInput(BaseModel):
+    reaction_time: float
+    error_rate: float
+    stroop_effect: float
+
+@app.post("/predict_stroop")
+def predict_stroop(data: StroopInput):
+    if not stroop_model:
+        raise HTTPException(status_code=500, detail="Stroop Model not loaded.")
+    
+    try:
+        input_data = pd.DataFrame([{
+            'reaction_time': data.reaction_time,
+            'error_rate': data.error_rate,
+            'stroop_effect': data.stroop_effect
+        }])
+        
+        prediction = stroop_model.predict(input_data)[0]
+        level_map = {0: "Calm", 1: "Normal", 2: "Stressed"}
+        
+        return {"stress_level": level_map.get(prediction, "Normal")}
+    except Exception as e:
+         raise HTTPException(status_code=500, detail=str(e))
 
 class ChatInput(BaseModel):
     message: str

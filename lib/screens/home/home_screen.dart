@@ -7,6 +7,7 @@ import '../../core/theme/app_colors.dart';
 import '../../widgets/mindhug_logo.dart';
 import '../profile/profile_screen.dart';
 import '../quiz/mental_health_quiz.dart';
+import '../quiz/stroop_game_screen.dart';
 import '../../services/notification_service.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -273,6 +274,19 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 32),
 
             _buildMoodCard(isDark),
+
+            const SizedBox(height: 32),
+            
+            // Cognitive Games Section
+            const Text(
+              "Cognitive Assessments",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+            _buildCognitiveGameCard(isDark),
 
             const SizedBox(height: 32),
 
@@ -571,5 +585,66 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildCognitiveGameCard(bool isDark) {
+    return InkWell(
+      onTap: () {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const StroopGameScreen()));
+      },
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.surfaceDark : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            if (!isDark)
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 20,
+                offset: const Offset(0, 4),
+              ),
+          ],
+          border: isDark ? Border.all(color: Colors.white10) : null,
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.psychology, color: AppColors.primary),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Color Confusion Test",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    "Check your cognitive focus level",
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: isDark ? Colors.white70 : AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.arrow_forward_ios, size: 16, color: isDark ? Colors.white54 : AppColors.textSecondary),
+          ],
+        ),
+      ),
+    );
+  }
 
 }
