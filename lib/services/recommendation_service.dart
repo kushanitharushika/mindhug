@@ -7,7 +7,6 @@ import 'package:flutter/foundation.dart';
 class RecommendationService {
   
   // 1. Try to get from ML Engine (Python API)
-  // 1. Try to get from ML Engine (Python API)
   static Future<List<String>> getRecommendations({required String level, required Mood mood}) async {
     try {
       // Determine base URL based on platform
