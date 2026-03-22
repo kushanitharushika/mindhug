@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MindHug Logo Generator</title>
+</head>
+<body>
+    <canvas id="logoCanvas" width="512" height="512" style="border: 1px solid black;"></canvas>
+    <br>
+    <a id="downloadLink" download="mindhug_logo.png" href="#">Download PNG</a>
+    <script>
+        const canvas = document.getElementById('logoCanvas');
+        const ctx = canvas.getContext('2d');
+        const size = 512;
+
+        // 1. Draw Gradient Circle Background
+        const cx = size / 2;
+        const cy = size / 2;
+        const radius = size * 0.45; // Leave some margin for shadow
+
+        // Shadow
+        ctx.shadowColor = 'rgba(156, 39, 176, 0.25)'; // Colors.purple.withOpacity(0.25)
+        ctx.shadowBlur = 12;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 6;
+
+        // Gradient (Colors.purple.shade600 to Colors.pink.shade300)
+        // Flutter: topLeft to bottomRight
+        const gradient = ctx.createLinearGradient(
+            cx - radius, cy - radius,
+            cx + radius, cy + radius
+        );
+        gradient.addColorStop(0, '#8E24AA'); // purple.shade600
+        gradient.addColorStop(1, '#F06292'); // pink.shade300
+
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+
+        // 2. Draw White Heart
+        // Reset shadow for the heart
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+
+        ctx.fillStyle = "white";
+        ctx.beginPath();
+
+        const heartScale = size * 0.45;
+        // Shift heart up slightly to match Icon placement visually
+        const offsetY = cy - (heartScale * 0.1); 
+
+        // Use standard bezier heart formula
+        const topCurveHeight = heartScale * 0.3;
+        
+        ctx.moveTo(cx, offsetY + heartScale * 0.2);
+        
+        // Left curve
+        ctx.bezierCurveTo(
+            cx - heartScale/2, offsetY - topCurveHeight, 
+            cx - heartScale, offsetY + topCurveHeight, 
+            cx, offsetY + heartScale * 0.8
+        );
+        
+        // Right curve
+        ctx.bezierCurveTo(
+            cx + heartScale, offsetY + topCurveHeight, 
+            cx + heartScale/2, offsetY - topCurveHeight, 
+            cx, offsetY + heartScale * 0.2
+        );
+        
+        ctx.fill();
+
+        // 3. Prepare Download Link
+        const link = document.getElementById('downloadLink');
+        link.href = canvas.toDataURL('image/png');
+        
+        // Auto-click the link if opened in a browser that allows it
+        // link.click();
+    </script>
+</body>
+</html>

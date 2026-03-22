@@ -299,93 +299,171 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> with Single
                       );
                     }),
                   ],
-
-                  const SizedBox(height: 40),
-                  
-                  // Timer Circle (Centered in scroll view)
-                  Center(
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        SizedBox(
-                          width: 220,
-                          height: 220,
-                          child: CircularProgressIndicator(
-                            value: 1.0 - (_remainingSeconds / _totalSeconds), 
-                            strokeWidth: 12,
-                            backgroundColor: isDark ? Colors.white10 : Colors.grey.shade200,
-                            valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
-                          ),
-                        ),
-                        Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                             Icon(
-                              _isActive ? Icons.timer : Icons.timer_off_outlined,
-                              size: 32,
-                              color: isDark ? Colors.white30 : Colors.grey.shade400,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              _formatTime(_remainingSeconds),
-                              style: TextStyle(
-                                fontSize: 40,
-                                fontWeight: FontWeight.bold,
-                                color: textColor,
-                                fontFeatures: const [FontFeature.tabularFigures()],
-                              ),
-                            ),
-                            Text(
-                              _isActive ? "Remaining" : "Ready",
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: isDark ? Colors.white54 : Colors.grey,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 100), // Space for FAB
                 ],
               ),
             ),
           ),
-        ],
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          if (_isActive)
-            FloatingActionButton.large(
-              heroTag: "fab_timer",
-              onPressed: _stopTimer,
-              backgroundColor: Colors.orangeAccent,
-              child: const Icon(Icons.pause, size: 40, color: Colors.white),
-            )
-          else
-            FloatingActionButton.large(
-              heroTag: "fab_timer",
-              onPressed: _isCompleted ? null : _startTimer,
-              backgroundColor: _isCompleted ? Colors.grey : AppColors.success,
-              child: Icon(
-                _isCompleted ? Icons.check : Icons.play_arrow,
-                size: 40,
-                color: Colors.white
+          
+          // Persistent Timer Section
+          Container(
+            padding: const EdgeInsets.only(top: 24, bottom: 32, left: 16, right: 16),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.surfaceDark : Colors.white,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+              boxShadow: [
+                BoxShadow(
+                  color: isDark ? Colors.black45 : Colors.black12,
+                  blurRadius: 20,
+                  offset: const Offset(0, -5),
+                )
+              ],
+            ),
+            child: SafeArea(
+              top: false,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Timer Circle
+                  Center(
+                    child: Container(
+                      width: 200,
+                      height: 200,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isDark ? AppColors.backgroundDark : Colors.grey.shade50,
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withOpacity(isDark ? 0.2 : 0.1),
+                            blurRadius: 20,
+                            spreadRadius: 2,
+                          ),
+                          BoxShadow(
+                            color: isDark ? Colors.black26 : Colors.black12,
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          SizedBox(
+                            width: 170,
+                            height: 170,
+                            child: TweenAnimationBuilder<double>(
+                              tween: Tween(begin: 0.0, end: 1.0 - (_remainingSeconds / _totalSeconds)),
+                              duration: const Duration(milliseconds: 300),
+                              builder: (context, value, child) {
+                                return CircularProgressIndicator(
+                                  value: value, 
+                                  strokeWidth: 12,
+                                  strokeCap: StrokeCap.round,
+                                  backgroundColor: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade200,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    _remainingSeconds <= 10 && _remainingSeconds > 0 ? AppColors.error : AppColors.primary
+                                  ),
+                                );
+                              }
+                            ),
+                          ),
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                _isActive ? Icons.timer : Icons.timer_outlined,
+                                size: 28,
+                                color: isDark ? Colors.white30 : AppColors.textSecondary.withOpacity(0.5),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                _formatTime(_remainingSeconds),
+                                style: TextStyle(
+                                  fontSize: 48,
+                                  height: 1.0,
+                                  fontWeight: FontWeight.w800,
+                                  color: _remainingSeconds <= 10 && _remainingSeconds > 0
+                                      ? AppColors.error 
+                                      : (isDark ? Colors.white : AppColors.textPrimary),
+                                  fontFeatures: const [FontFeature.tabularFigures()],
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                _isActive ? "Time Remaining" : "Ready to Start",
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                  letterSpacing: 1.1,
+                                  color: isDark ? Colors.white54 : AppColors.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  
+                  // Controls
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (_isActive)
+                        ElevatedButton.icon(
+                          onPressed: _stopTimer,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.orangeAccent,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                            elevation: 0,
+                          ),
+                          icon: const Icon(Icons.pause),
+                          label: const Text("Pause", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        )
+                      else
+                        ElevatedButton.icon(
+                          onPressed: _isCompleted ? null : _startTimer,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _isCompleted ? Colors.grey : AppColors.success,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                            elevation: 0,
+                          ),
+                          icon: Icon(_isCompleted ? Icons.check : Icons.play_arrow),
+                          label: Text(
+                            _isCompleted ? "Done" : "Start", 
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)
+                          ),
+                        ),
+                        
+                      const SizedBox(width: 16),
+                      
+                      Container(
+                        decoration: BoxDecoration(
+                          color: isDark ? Colors.white10 : Colors.grey.shade100,
+                          shape: BoxShape.circle,
+                        ),
+                        child: IconButton(
+                          icon: Icon(
+                            Icons.refresh, 
+                            color: isDark ? Colors.white70 : AppColors.textSecondary
+                          ),
+                          onPressed: _resetTimer,
+                          tooltip: "Reset Timer",
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
-            
-          const SizedBox(width: 20),
-          
-          FloatingActionButton(
-            heroTag: "fab_reset",
-            onPressed: _resetTimer,
-            backgroundColor: isDark ? Colors.white10 : Colors.white,
-            foregroundColor: isDark ? Colors.white : Colors.grey,
-            elevation: 0,
-            child: const Icon(Icons.refresh),
           ),
         ],
       ),

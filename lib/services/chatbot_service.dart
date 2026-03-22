@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 
 class ChatbotService {
   // Using user provided local IP for access from physical device
-  static const String _baseUrl = 'http://192.168.8.117:8000'; 
+  static const String _baseUrl = 'http://192.168.8.114:8000'; 
 
   Future<String> getResponse(String input) async {
     if (input.trim().isEmpty) return "I didn't quite catch that. Could you say it again?";
