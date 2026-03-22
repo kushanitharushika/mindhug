@@ -122,7 +122,7 @@ class _StroopResultScreenState extends State<StroopResultScreen> {
 
       if (user != null) {
         // Save detailed analytics payload
-        await FirebaseFirestore.instance.collection('color confution test').add({ // Using requested collection
+        await FirebaseFirestore.instance.collection('color_confution_test').add({
           'user_id': user.uid,
           'accuracy': _accuracy,
           'avg_reaction_time': _avgReactionTime,
