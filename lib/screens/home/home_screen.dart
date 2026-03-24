@@ -9,6 +9,7 @@ import '../profile/profile_screen.dart';
 import '../quiz/mental_health_quiz.dart';
 import '../quiz/stroop_game_screen.dart';
 import '../../services/notification_service.dart';
+import '../chatbot/chatbase_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -348,6 +349,16 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const ChatbaseScreen()),
+          );
+        },
+        backgroundColor: AppColors.primary,
+        child: const Icon(Icons.chat, color: Colors.white),
+      ),
     );
   }
 
