@@ -3,29 +3,31 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class ChatbotService {
-  // Using user provided local IP for access from physical device
-  static const String _baseUrl = 'http://192.168.8.114:8000'; 
+  // Replace with the actual URL of your Node.js backend that hosts the JWT code
+  static const String _authUrl = 'http://192.168.8.114:8000/api/chatbase-auth'; 
 
-  Future<String> getResponse(String input) async {
-    if (input.trim().isEmpty) return "I didn't quite catch that. Could you say it again?";
-
+  /// Fetches the Chatbase signed JWT token for the current user
+  /// You use this if you migrate the WebView to use the standard script injection
+  /// instead of iframe, or if you build your own chat UI using Chatbase API.
+  Future<String?> getUserToken() async {
     try {
-      final response = await http.post(
-        Uri.parse('$_baseUrl/chat'),
+      final response = await http.get(
+        Uri.parse(_authUrl),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'message': input}),
+        // You would likely pass your Firebase auth token here to authenticate
+        // the request to your Node.js backend
       );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return data['response'] as String;
+        return data['token'] as String;
       } else {
-        debugPrint('Error fetching response: ${response.statusCode}');
-        return "I'm having a bit of trouble connecting right now. Can we try again later?";
+        debugPrint('Error fetching token: ${response.statusCode}');
+        return null;
       }
     } catch (e) {
-      debugPrint('Error connecting to chatbot backend: $e');
-      return "I seem to be offline. Please check your connection.";
+      debugPrint('Error connecting to backend: $e');
+      return null;
     }
   }
 }

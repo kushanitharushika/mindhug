@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../screens/home/home_screen.dart';
 import '../screens/exercises/exercises_screen.dart';
 import '../screens/journal/journal_screen.dart';
-import '../screens/chatbot/melo_chat_screen.dart';
 import '../screens/profile/profile_screen.dart';
 
 class BottomNav extends StatefulWidget {
@@ -19,7 +18,6 @@ class _BottomNavState extends State<BottomNav> {
     const HomeScreen(),
     const ExercisesScreen(),
     const JournalScreen(),
-    const MindHugChatbot(),
     const ProfileScreen(),
   ];
 
@@ -44,7 +42,6 @@ class _BottomNavState extends State<BottomNav> {
             label: "Exercises",
           ),
           BottomNavigationBarItem(icon: Icon(Icons.book), label: "Journal"),
-          BottomNavigationBarItem(icon: Icon(Icons.chat), label: "Melo"),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
         ],
       ),
