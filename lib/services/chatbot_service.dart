@@ -31,25 +31,5 @@ class ChatbotService {
     }
   }
 
-  /// Sends user message to the ML engine backend and returns the response
-  Future<String> getResponse(String message) async {
-    try {
-      final response = await http.post(
-        Uri.parse('http://192.168.8.114:8000/chat'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'message': message}),
-      );
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return data['response'] as String;
-      } else {
-        debugPrint('Error from ML engine: ${response.statusCode}');
-        return "I'm having a bit of trouble connecting to my brain right now... 🌸";
-      }
-    } catch (e) {
-      debugPrint('Error connecting to ML engine: $e');
-      return "I can't seem to reach my thoughts. Maybe check your connection? 🌷";
-    }
-  }
 }
