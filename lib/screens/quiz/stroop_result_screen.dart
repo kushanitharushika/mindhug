@@ -7,6 +7,9 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../core/storage/local_storage.dart';
 import '../../core/theme/app_colors.dart';
+import '../../models/exercise.dart';
+import '../../data/mock_exercises.dart';
+import '../exercises/exercise_detail_screen.dart';
 import 'stroop_game_screen.dart';
 
 class StroopResultScreen extends StatefulWidget {
@@ -27,6 +30,7 @@ class _StroopResultScreenState extends State<StroopResultScreen> {
   String _crossCheckMessage = "Analyzing your cognitive metrics...";
   bool _isAnalyzing = true;
   Color _insightColor = AppColors.primary;
+  List<Exercise> _recommendedExercises = [];
 
   // Calculated Metrics
   int _correctAnswers = 0;
@@ -139,6 +143,7 @@ class _StroopResultScreenState extends State<StroopResultScreen> {
           'latestStroopScore': _accuracy.round(),
           'latestStroopAvgTime': _avgReactionTime,
           'lastStroopDate': FieldValue.serverTimestamp(),
+          'latestStroopStressLevel': _stressLevel,
         }, SetOptions(merge: true));
       }
 
@@ -179,10 +184,32 @@ class _StroopResultScreenState extends State<StroopResultScreen> {
         finalColor = AppColors.success;
       }
 
+      List<String> pool = [];
+      if (!isLowStress && _stressLevel == "Stressed") {
+         // Both indicate high stress - grounding & direct calming
+         pool = ['1', '2', '3', '6', '10', '11'];
+      } else if (isLowStress && _stressLevel == "Stressed") {
+         // Subconscious stress - resetting & relaxation
+         pool = ['3', '8', '10', '11', '14', '17'];
+      } else if (!isLowStress && _stressLevel == "Calm") {
+         // Quiz says stressed, but stroop says calm - reflective & mood-boosting
+         pool = ['4', '7', '8', '14', '15', '17'];
+      } else {
+         // Both indicate good state - moderate activity/maintenance
+         pool = ['5', '9', '12', '13', '15', '16'];
+      }
+
+      pool.shuffle();
+      final selectedIds = pool.take(3).toList();
+      List<Exercise> recommended = selectedIds
+          .map((id) => mockExercises.firstWhere((e) => e.id == id))
+          .toList();
+
       if (mounted) {
         setState(() {
           _crossCheckMessage = finalMessage;
           _insightColor = finalColor;
+          _recommendedExercises = recommended;
           _isAnalyzing = false;
         });
       }
@@ -376,6 +403,57 @@ class _StroopResultScreenState extends State<StroopResultScreen> {
                   ],
                 ),
               ),
+
+              if (_recommendedExercises.isNotEmpty) ...[
+                const SizedBox(height: 40),
+                Text("Recommended Exercises", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor)),
+                const SizedBox(height: 8),
+                Text("Based on your cross-check results", style: TextStyle(fontSize: 14, color: isDark ? Colors.white70 : AppColors.textSecondary)),
+                const SizedBox(height: 16),
+                SizedBox(
+                  height: 160,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: _recommendedExercises.length,
+                    separatorBuilder: (context, index) => const SizedBox(width: 16),
+                    itemBuilder: (context, index) {
+                      final ex = _recommendedExercises[index];
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => ExerciseDetailScreen(exercise: ex)));
+                        },
+                        child: Container(
+                          width: 200,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: cardColor,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [if (!isDark) BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
+                            border: Border.all(color: _insightColor.withOpacity(0.3)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: _insightColor.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(ex.duration, style: TextStyle(fontSize: 12, color: _insightColor, fontWeight: FontWeight.bold)),
+                              ),
+                              const Spacer(),
+                              Text(ex.title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: textColor), maxLines: 1, overflow: TextOverflow.ellipsis),
+                              const SizedBox(height: 4),
+                              Text(ex.description, style: TextStyle(fontSize: 12, color: isDark ? Colors.white54 : AppColors.textSecondary), maxLines: 2, overflow: TextOverflow.ellipsis),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
 
               const SizedBox(height: 40),
               ElevatedButton(
