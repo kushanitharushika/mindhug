@@ -14,6 +14,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../core/storage/local_storage.dart';
 import '../../services/recommendation_service.dart';
 import '../../services/notification_service.dart';
+import '../../services/cross_check_service.dart';
 import '../../data/mock_exercises.dart';
 
 class ExercisesScreen extends StatefulWidget {
@@ -105,27 +106,11 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
   void _generateCrossCheckPlan() {
     if (_latestStroopStressLevel == null) return;
 
-    final bool isLowStress = _userLevel.toLowerCase().contains("level 1") || 
-                             _userLevel.toLowerCase().contains("level 2") || 
-                             _userLevel.toLowerCase().contains("low") ||
-                             _userLevel.toLowerCase().contains("managing well");
-
-    List<String> pool = [];
-    if (!isLowStress && _latestStroopStressLevel == "Stressed") {
-       pool = ['1', '2', '3', '6', '10', '11'];
-    } else if (isLowStress && _latestStroopStressLevel == "Stressed") {
-       pool = ['3', '8', '10', '11', '14', '17'];
-    } else if (!isLowStress && _latestStroopStressLevel == "Calm") {
-       pool = ['4', '7', '8', '14', '15', '17'];
-    } else {
-       pool = ['5', '9', '12', '13', '15', '16'];
-    }
-
-    pool.shuffle();
-    final selectedIds = pool.take(3).toList();
-    _crossCheckExercises = selectedIds
-        .map((id) => _repoExercises.firstWhere((e) => e.id == id))
-        .toList();
+    _crossCheckExercises = CrossCheckService.getRecommendations(
+       userLevel: _userLevel, 
+       stroopStressLevel: _latestStroopStressLevel!, 
+       availableExercises: _repoExercises
+    );
   }
 
   void _onMoodSelected(Mood mood) {
