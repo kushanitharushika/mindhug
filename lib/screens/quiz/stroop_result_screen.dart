@@ -9,6 +9,7 @@ import '../../core/storage/local_storage.dart';
 import '../../core/theme/app_colors.dart';
 import '../../models/exercise.dart';
 import '../../data/mock_exercises.dart';
+import '../../services/cross_check_service.dart';
 import '../exercises/exercise_detail_screen.dart';
 import 'stroop_game_screen.dart';
 
@@ -162,10 +163,7 @@ class _StroopResultScreenState extends State<StroopResultScreen> {
         if (localData != null) userLevel = localData['level'];
       }
 
-      final bool isLowStress = userLevel.toLowerCase().contains("level 1") || 
-                               userLevel.toLowerCase().contains("level 2") || 
-                               userLevel.toLowerCase().contains("low") ||
-                               userLevel.toLowerCase().contains("managing well");
+      final bool isLowStress = CrossCheckService.isManagingWell(userLevel);
 
       String finalMessage;
       Color finalColor = AppColors.primary;
@@ -184,26 +182,12 @@ class _StroopResultScreenState extends State<StroopResultScreen> {
         finalColor = AppColors.success;
       }
 
-      List<String> pool = [];
-      if (!isLowStress && _stressLevel == "Stressed") {
-         // Both indicate high stress - grounding & direct calming
-         pool = ['1', '2', '3', '6', '10', '11'];
-      } else if (isLowStress && _stressLevel == "Stressed") {
-         // Subconscious stress - resetting & relaxation
-         pool = ['3', '8', '10', '11', '14', '17'];
-      } else if (!isLowStress && _stressLevel == "Calm") {
-         // Quiz says stressed, but stroop says calm - reflective & mood-boosting
-         pool = ['4', '7', '8', '14', '15', '17'];
-      } else {
-         // Both indicate good state - moderate activity/maintenance
-         pool = ['5', '9', '12', '13', '15', '16'];
-      }
-
-      pool.shuffle();
-      final selectedIds = pool.take(3).toList();
-      List<Exercise> recommended = selectedIds
-          .map((id) => mockExercises.firstWhere((e) => e.id == id))
-          .toList();
+      // 4. Generate Recommended Exercises using the pure logic service
+      List<Exercise> recommended = CrossCheckService.getRecommendations(
+        userLevel: userLevel,
+        stroopStressLevel: _stressLevel,
+        availableExercises: mockExercises,
+      );
 
       if (mounted) {
         setState(() {

@@ -20,8 +20,8 @@ class RecommendationService {
       }
 
       // Map Inputs to Integers (as expected by ML Model)
-      final int levelInt = _mapLevelToInt(level);
-      final int moodInt = _mapMoodToInt(mood);
+      final int levelInt = mapLevelToInt(level);
+      final int moodInt = mapMoodToInt(mood);
 
       debugPrint("Calling ML API: $apiUrl with Level: $levelInt, Mood: $moodInt");
 
@@ -47,10 +47,10 @@ class RecommendationService {
     }
 
     // 2. Fallback to Local Rules
-    return _getLocalRules(level: level, mood: mood);
+    return getLocalRules(level: level, mood: mood);
   }
 
-  static int _mapLevelToInt(String level) {
+  static int mapLevelToInt(String level) {
     final l = level.toLowerCase();
     if (l.contains("level 0") || l.contains("priority")) return 0;
     if (l.contains("level 1") || l.contains("attention")) return 1;
@@ -59,7 +59,7 @@ class RecommendationService {
     return 2; // Default to 'Managing Well'
   }
 
-  static int _mapMoodToInt(Mood mood) {
+  static int mapMoodToInt(Mood mood) {
     switch (mood.type) {
       case MoodType.anxious: return 0;
       case MoodType.stressed: return 0; // Map stressed to anxious
@@ -77,7 +77,7 @@ class RecommendationService {
   }
 
   // Mapping of Level -> Mood -> Exercise Types (or specific titles)
-  static List<String> _getLocalRules({required String level, required Mood mood}) {
+  static List<String> getLocalRules({required String level, required Mood mood}) {
     // Normalize level string to handle potential formatting diffs
     final cleanLevel = level.toLowerCase();
     
