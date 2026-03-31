@@ -85,7 +85,7 @@ class _StroopResultScreenState extends State<StroopResultScreen> {
 
     // Consistency (Standard Deviation)
     double mean = _avgReactionTime.toDouble();
-    double sumSquaredDiffs = allRTs.fold(0.0, (sum, rt) => sum + pow(rt - mean, 2));
+    double sumSquaredDiffs = allRTs.fold(0.0, (acc, rt) => acc + pow(rt - mean, 2));
     double stdDev = sqrt(sumSquaredDiffs / widget.totalRounds);
     _consistencyScore = (100 - (stdDev / 10)).clamp(0, 100).round();
 
@@ -244,7 +244,7 @@ class _StroopResultScreenState extends State<StroopResultScreen> {
                 children: [
                   Expanded(child: _buildSummaryCard("Stress State", _stressLevel, Icons.monitor_heart_outlined, _stressLevel == 'Calm' ? Colors.green : Colors.redAccent, cardColor, isDark)),
                   const SizedBox(width: 12),
-                  Expanded(child: _buildSummaryCard("Consistency", "${_consistencyScore}/100", Icons.track_changes, Colors.blue, cardColor, isDark)),
+                  Expanded(child: _buildSummaryCard("Consistency", "$_consistencyScore/100", Icons.track_changes, Colors.blue, cardColor, isDark)),
                 ],
               ),
 
