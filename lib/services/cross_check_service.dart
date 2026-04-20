@@ -1,4 +1,5 @@
 import '../models/exercise.dart';
+import '../models/mood.dart';
 
 class CrossCheckService {
   /// Evaluates if the user's self-reported state is generally 'low stress'.
@@ -15,37 +16,65 @@ class CrossCheckService {
     required String userLevel,
     required String stroopStressLevel,
     required List<Exercise> availableExercises,
+    Mood? mood,
   }) {
+    if (availableExercises.isEmpty) return [];
+
     final bool isLowStress = isManagingWell(userLevel);
-    List<String> pool = [];
+
+    // We now work with indices into the availableExercises list
+    // to avoid brittle hardcoded ID matching.
+    final int total = availableExercises.length;
+
+    // Helper: safely map a fraction (0.0–1.0) to a list index
+    int idx(double fraction) => (fraction * (total - 1)).round().clamp(0, total - 1);
+
+    // Define pools as fractions of the full list so they always resolve correctly
+    List<int> pool = [];
 
     if (!isLowStress && stroopStressLevel == "Stressed") {
-       // Both indicate high stress - grounding & direct calming
-       pool = ['1', '2', '3', '6', '10', '11'];
+      // Both indicate high stress — grounding & calming exercises (early in list)
+      pool = [idx(0.0), idx(0.1), idx(0.2), idx(0.5), idx(0.7), idx(0.8)];
     } else if (isLowStress && stroopStressLevel == "Stressed") {
-       // Subconscious stress - resetting & relaxation
-       pool = ['3', '8', '10', '11', '14', '17'];
+      // Subconscious stress — resetting & relaxation
+      pool = [idx(0.2), idx(0.5), idx(0.6), idx(0.7), idx(0.85), idx(0.95)];
     } else if (!isLowStress && stroopStressLevel == "Calm") {
-       // Quiz says stressed, but stroop says calm - reflective & mood-boosting
-       pool = ['4', '7', '8', '14', '15', '17'];
+      // Quiz says stressed but stroop says calm — reflective & mood-boosting
+      pool = [idx(0.25), idx(0.45), idx(0.5), idx(0.75), idx(0.8), idx(0.95)];
     } else {
-       // Both indicate good state - moderate activity/maintenance
-       pool = ['5', '9', '12', '13', '15', '16'];
+      // Both good — moderate activity / maintenance
+      pool = [idx(0.3), idx(0.55), idx(0.65), idx(0.75), idx(0.85), idx(0.9)];
+    }
+
+    if (mood != null) {
+      List<int> moodPool = [];
+      switch (mood.type) {
+        case MoodType.anxious:
+        case MoodType.stressed:
+          moodPool = [idx(0.0), idx(0.1), idx(0.4), idx(0.7), idx(0.85)];
+          break;
+        case MoodType.sad:
+        case MoodType.tired:
+          moodPool = [idx(0.2), idx(0.45), idx(0.5), idx(0.8), idx(0.95)];
+          break;
+        case MoodType.happy:
+        case MoodType.energetic:
+          moodPool = [idx(0.3), idx(0.55), idx(0.65), idx(0.75), idx(0.9)];
+          break;
+        case MoodType.calm:
+        case MoodType.neutral:
+          moodPool = [idx(0.25), idx(0.5), idx(0.55), idx(0.65), idx(0.85)];
+          break;
+      }
+      // Combine and deduplicate
+      pool = {...moodPool, ...pool}.toList();
     }
 
     pool.shuffle();
-    final selectedIds = pool.take(3).toList();
-    
-    // Safely map IDs to actual Exercise objects
-    List<Exercise> recommended = [];
-    for (var id in selectedIds) {
-      try {
-        recommended.add(availableExercises.firstWhere((e) => e.id == id));
-      } catch (e) {
-        // Ignore if exercise ID is not found in the provided list
-      }
-    }
+    final selectedIndices = pool.take(3).toSet(); // deduplicate in case of overlaps
 
-    return recommended;
+    return selectedIndices
+        .map((i) => availableExercises[i])
+        .toList();
   }
 }

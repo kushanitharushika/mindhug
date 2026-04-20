@@ -31,7 +31,7 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
   List<Exercise> _allExercises = [];
   
   // Data from mock_exercises.dart will be used
-  final List<Exercise> _repoExercises = mockExercises;
+  List<Exercise> _repoExercises = List.from(mockExercises);
 
   String _userLevel = "Level 3 - Balanced & Resilient"; // Default
   String? _latestStroopStressLevel;
@@ -75,6 +75,21 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
     // Simulate loading rest
     await Future.delayed(const Duration(milliseconds: 500));
     
+    // 3. Load Firebase Exercises
+    try {
+      final snapshot = await FirebaseFirestore.instance.collection('exercises').get();
+      final firebaseExercises = snapshot.docs.map((doc) => Exercise.fromMap(doc.data(), doc.id)).toList();
+      
+      // Deduplicate by title: prefer Firebase version over local version
+      for (var ex in firebaseExercises) {
+        // Remove existing local exercise with same title (case-insensitive) if it exists
+        _repoExercises.removeWhere((e) => e.title.toLowerCase() == ex.title.toLowerCase());
+        _repoExercises.add(ex);
+      }
+    } catch (e) {
+      debugPrint("Error loading Firebase exercises: $e");
+    }
+
     setState(() {
       _allExercises = _repoExercises;
       if (savedCareItems.isNotEmpty) {
@@ -103,13 +118,14 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
     });
   }
 
-  void _generateCrossCheckPlan() {
+  void _generateCrossCheckPlan([Mood? mood]) {
     if (_latestStroopStressLevel == null) return;
 
     _crossCheckExercises = CrossCheckService.getRecommendations(
        userLevel: _userLevel, 
        stroopStressLevel: _latestStroopStressLevel!, 
-       availableExercises: _repoExercises
+       availableExercises: _repoExercises,
+       mood: mood,
     );
   }
 
@@ -117,6 +133,7 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
     setState(() {
       _selectedMood = mood;
       _generateSmartPlan(mood);
+      _generateCrossCheckPlan(mood);
     });
   }
 
@@ -124,7 +141,8 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
     // 1. Get Recommendations from "ML" Engine (Async now)
     final recommendedTitles = await RecommendationService.getRecommendations(
       level: _userLevel, 
-      mood: mood
+      mood: mood,
+      stroopStressLevel: _latestStroopStressLevel,
     );
 
     if (!mounted) return;

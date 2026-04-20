@@ -8,6 +8,7 @@ import 'forgot_password_screen.dart';
 import 'signup_screen.dart';
 
 import '../../services/auth_service.dart';
+import 'package:flutter/services.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -87,6 +88,7 @@ class _LoginScreenState extends State<LoginScreen>
         email: email,
         password: password,
       );
+      TextInput.finishAutofillContext();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -216,29 +218,34 @@ class _LoginScreenState extends State<LoginScreen>
                                           ),
                                         ],
                                 ),
-                                child: Column(
-                                  children: [
-                                    CustomTextField(
-                                      label: 'Email',
-                                      prefixIcon: Icons.email_outlined,
-                                      keyboardType: TextInputType.emailAddress,
-                                      controller: _emailController,
-                                    ),
-                                    const SizedBox(height: 20),
-                                    CustomTextField(
-                                      label: 'Password',
-                                      prefixIcon: Icons.lock_outlined,
-                                      obscureText: !_isPasswordVisible,
-                                      controller: _passwordController,
-                                      suffixIcon: IconButton(
-                                        icon: Icon(
-                                          _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
-                                          color: Colors.grey,
-                                        ),
-                                        onPressed: () => setState(() => _isPasswordVisible = !_isPasswordVisible),
+                                child: AutofillGroup(
+                                  child: Column(
+                                    children: [
+                                      CustomTextField(
+                                        label: 'Email',
+                                        prefixIcon: Icons.email_outlined,
+                                        keyboardType: TextInputType.emailAddress,
+                                        controller: _emailController,
+                                        autofillHints: const [AutofillHints.email],
+                                        textInputAction: TextInputAction.next,
                                       ),
-                                    ),
-                                    const SizedBox(height: 12),
+                                      const SizedBox(height: 20),
+                                      CustomTextField(
+                                        label: 'Password',
+                                        prefixIcon: Icons.lock_outlined,
+                                        obscureText: !_isPasswordVisible,
+                                        controller: _passwordController,
+                                        autofillHints: const [AutofillHints.password],
+                                        textInputAction: TextInputAction.done,
+                                        suffixIcon: IconButton(
+                                          icon: Icon(
+                                            _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                                            color: Colors.grey,
+                                          ),
+                                          onPressed: () => setState(() => _isPasswordVisible = !_isPasswordVisible),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 12),
                                     
                                     // Remember & Forgot
                                     Row(
@@ -291,7 +298,9 @@ class _LoginScreenState extends State<LoginScreen>
                                       ),
                                   ],
                                 ),
-                              ),const SizedBox(height: 24),
+                                ),
+                              ),
+                              const SizedBox(height: 24),
                               
                               const Spacer(), // Flexible space middle
                               

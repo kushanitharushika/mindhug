@@ -7,7 +7,11 @@ import 'package:flutter/foundation.dart';
 class RecommendationService {
   
   // 1. Try to get from ML Engine (Python API)
-  static Future<List<String>> getRecommendations({required String level, required Mood mood}) async {
+  static Future<List<String>> getRecommendations({
+    required String level, 
+    required Mood mood,
+    String? stroopStressLevel,
+  }) async {
     try {
       // Determine base URL based on platform
       String apiUrl = 'http://127.0.0.1:8000/recommend';
@@ -47,7 +51,7 @@ class RecommendationService {
     }
 
     // 2. Fallback to Local Rules
-    return getLocalRules(level: level, mood: mood);
+    return getLocalRules(level: level, mood: mood, stroopStressLevel: stroopStressLevel);
   }
 
   static int mapLevelToInt(String level) {
@@ -77,9 +81,22 @@ class RecommendationService {
   }
 
   // Mapping of Level -> Mood -> Exercise Types (or specific titles)
-  static List<String> getLocalRules({required String level, required Mood mood}) {
+  static List<String> getLocalRules({
+    required String level, 
+    required Mood mood,
+    String? stroopStressLevel,
+  }) {
     // Normalize level string to handle potential formatting diffs
-    final cleanLevel = level.toLowerCase();
+    String cleanLevel = level.toLowerCase();
+    
+    // If Stroop test indicates stress, treat them as needing slightly more care
+    if (stroopStressLevel == "Stressed") {
+      if (cleanLevel.contains("managing well") || cleanLevel.contains("level 2")) {
+         cleanLevel = "needs attention";
+      } else if (cleanLevel.contains("balanced") || cleanLevel.contains("level 3")) {
+         cleanLevel = "managing well";
+      }
+    }
     
     // Level 0 - Priority Support Needed
     if (cleanLevel.contains("priority") || cleanLevel.contains("level 0")) {

@@ -34,14 +34,17 @@ class _MentalHealthQuizState extends State<MentalHealthQuiz> {
       List<QuizQuestion> allQuestions = [];
       
       if (snapshot.docs.isNotEmpty) {
-        allQuestions = snapshot.docs.map((doc) {
+        final Map<String, QuizQuestion> uniqueQuestions = {};
+        for (var doc in snapshot.docs) {
           final data = doc.data();
-          return QuizQuestion(
-            question: data['question'] ?? 'Unknown Question',
+          final qText = data['question'] ?? 'Unknown Question';
+          uniqueQuestions[qText.toLowerCase().trim()] = QuizQuestion(
+            question: qText,
             options: List<String>.from(data['options'] ?? []),
             scores: List<int>.from(data['scores'] ?? []),
           );
-        }).toList();
+        }
+        allQuestions = uniqueQuestions.values.toList();
       } else {
         // Fallback to static data if DB is empty (e.g. before seeding)
         allQuestions = List<QuizQuestion>.from(quizQuestions);

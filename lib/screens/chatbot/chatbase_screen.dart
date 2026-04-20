@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -9,40 +10,72 @@ class ChatbaseScreen extends StatefulWidget {
 }
 
 class _ChatbaseScreenState extends State<ChatbaseScreen> {
-  late final WebViewController _controller;
+  WebViewController? _controller;
+  bool _isLoading = true;
+
+  static const String _chatbotId = 'IAqJ7hQK601e1vrDb9kL5';
 
   @override
   void initState() {
     super.initState();
-    // The chatbase embed URL based on the user's snippet.
-    // The chatbase snippet uses script src="https://www.chatbase.co/embed.min.js" id="IAqJ7hQK601e1vrDb9kL5"
-    // The standard chatbase iframe URL is:
-    final iframeUrl = Uri.parse('https://www.chatbase.co/chatbot-iframe/IAqJ7hQK601e1vrDb9kL5');
+    _initChatbot();
+  }
 
-    _controller = WebViewController()
+  Future<void> _initChatbot() async {
+    // Clear cookies + storage so each user gets a fresh, isolated chat session
+    await WebViewCookieManager().clearCookies();
+
+    final user = FirebaseAuth.instance.currentUser;
+    final userId = user?.uid ?? 'anonymous';
+
+    final iframeUrl = Uri.parse(
+      'https://www.chatbase.co/chatbot-iframe/$_chatbotId?userId=$userId',
+    );
+
+    final controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(const Color(0x00000000))
       ..setNavigationDelegate(
         NavigationDelegate(
-          onProgress: (int progress) {
-            // Update loading bar.
+          onPageFinished: (url) async {
+            // Also wipe localStorage via JS after the page loads
+            await _controller?.runJavaScript('localStorage.clear(); sessionStorage.clear();');
+            if (mounted) setState(() => _isLoading = false);
           },
-          onPageStarted: (String url) {},
-          onPageFinished: (String url) {},
-          onWebResourceError: (WebResourceError error) {},
-          onNavigationRequest: (NavigationRequest request) {
-            return NavigationDecision.navigate;
+          onWebResourceError: (_) {
+            if (mounted) setState(() => _isLoading = false);
           },
+          onNavigationRequest: (_) => NavigationDecision.navigate,
         ),
       )
       ..loadRequest(iframeUrl);
+
+    if (mounted) {
+      setState(() => _controller = controller);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('MindHug Assistant'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        foregroundColor: isDark ? Colors.white : Colors.black87,
+      ),
       body: SafeArea(
-        child: WebViewWidget(controller: _controller),
+        child: _controller == null
+            ? const Center(child: CircularProgressIndicator())
+            : Stack(
+                children: [
+                  WebViewWidget(controller: _controller!),
+                  if (_isLoading)
+                    const Center(child: CircularProgressIndicator()),
+                ],
+              ),
       ),
     );
   }

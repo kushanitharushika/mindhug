@@ -12,6 +12,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../admin/admin_dashboard.dart';
 import '../../services/notification_service.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -309,6 +310,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 width: double.infinity,
                 child: TextButton.icon(
                   onPressed: () async {
+                     try { await WebViewCookieManager().clearCookies(); } catch (_) {}
                      await AuthService().signOut();
                      if (context.mounted) {
                        Navigator.pushAndRemoveUntil(
