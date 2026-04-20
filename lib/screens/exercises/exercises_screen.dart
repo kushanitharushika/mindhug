@@ -31,7 +31,7 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
   List<Exercise> _allExercises = [];
   
   // Data from mock_exercises.dart will be used
-  List<Exercise> _repoExercises = List.from(mockExercises);
+  final List<Exercise> _repoExercises = List.from(mockExercises);
 
   String _userLevel = "Level 3 - Balanced & Resilient"; // Default
   String? _latestStroopStressLevel;

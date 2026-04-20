@@ -483,7 +483,7 @@ class _AdminExercisesScreenState extends State<AdminExercisesScreen> {
 
                     try {
                       if (isEditing) {
-                        await _firestore.collection('exercises').doc(doc!.id).update(data);
+                        await _firestore.collection('exercises').doc(doc.id).update(data);
                       } else {
                         await _firestore.collection('exercises').add(data);
                       }
