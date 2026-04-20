@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
+import '../quiz/quiz_data.dart';
 
 class AdminQuizScreen extends StatefulWidget {
   const AdminQuizScreen({super.key});
@@ -12,34 +13,20 @@ class AdminQuizScreen extends StatefulWidget {
 class _AdminQuizScreenState extends State<AdminQuizScreen> {
   final _firestore = FirebaseFirestore.instance;
 
-  // --- SEED DATA (Taken from quiz_data.dart) ---
-  final List<Map<String, dynamic>> _seedQuestions = [
-    {
-      "question": "How do you feel most of the time these days?",
-      "options": ["Happy", "Neutral", "Sad", "Anxious or stressed"],
-      "scores": [4, 3, 2, 1],
-    },
-    {
-      "question": "How often do you feel overwhelmed by your studies or responsibilities?",
-      "options": ["Rarely", "Sometimes", "Often", "Almost always"],
-      "scores": [4, 3, 2, 1],
-    },
-    {
-      "question": "How often do you feel motivated to do your daily tasks?",
-      "options": ["Almost everyday", "Sometimes", "Rarely", "Never"],
-      "scores": [4, 3, 2, 1],
-    },
-  ];
-
   Future<void> _seedDatabase() async {
-    for (var i = 0; i < _seedQuestions.length; i++) {
-      await _firestore.collection('questions').add({
-        ..._seedQuestions[i],
+    for (var i = 0; i < quizQuestions.length; i++) {
+      final questionText = quizQuestions[i].question;
+      final slug = questionText.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_').replaceAll(RegExp(r'^_|_$'), '');
+      
+      await _firestore.collection('questions').doc(slug).set({
+        'question': quizQuestions[i].question,
+        'options': quizQuestions[i].options,
+        'scores': quizQuestions[i].scores,
         'order': i, // Keep order
-      });
+      }, SetOptions(merge: true));
     }
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Seeding Complete!')));
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('All Quiz Questions Seeded!')));
   }
 
   Future<void> _deleteQuestion(String id) async {

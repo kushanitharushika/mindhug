@@ -128,7 +128,7 @@ class _StroopResultScreenState extends State<StroopResultScreen> {
       if (user != null) {
         // Save detailed analytics payload
         await FirebaseFirestore.instance.collection('color_confution_test').add({
-          'user_id': user.uid,
+          'userId': user.uid,        // must match security rule field name
           'accuracy': _accuracy,
           'avg_reaction_time': _avgReactionTime,
           'stroop_effect': _stroopEffect,
@@ -182,11 +182,24 @@ class _StroopResultScreenState extends State<StroopResultScreen> {
         finalColor = AppColors.success;
       }
 
-      // 4. Generate Recommended Exercises using the pure logic service
+      // 4. Load full exercise list (local + Firebase) for recommendations
+      List<Exercise> allExercises = List<Exercise>.from(mockExercises);
+      try {
+        final snapshot = await FirebaseFirestore.instance.collection('exercises').get();
+        for (var doc in snapshot.docs) {
+          final ex = Exercise.fromMap(doc.data(), doc.id);
+          allExercises.removeWhere((e) => e.title.toLowerCase() == ex.title.toLowerCase());
+          allExercises.add(ex);
+        }
+      } catch (_) {
+        // Fall back to local mock exercises if Firebase fails
+      }
+
+      // 5. Generate Recommended Exercises using the pure logic service
       List<Exercise> recommended = CrossCheckService.getRecommendations(
         userLevel: userLevel,
         stroopStressLevel: _stressLevel,
-        availableExercises: mockExercises,
+        availableExercises: allExercises,
       );
 
       if (mounted) {

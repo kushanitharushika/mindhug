@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
 import '../quiz/mental_health_quiz.dart';
 import '../../widgets/app_scaffold.dart';
+import 'package:flutter/services.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -34,6 +35,8 @@ class _SignupScreenState extends State<SignupScreen> {
         phoneNumber: phoneCtrl.text.trim(),
       );
       
+      TextInput.finishAutofillContext();
+      
       if (!mounted) return;
 
       // Always navigate to Quiz for new users
@@ -60,11 +63,12 @@ class _SignupScreenState extends State<SignupScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-
-            const SizedBox(height: 30),
+        child: AutofillGroup(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+  
+              const SizedBox(height: 30),
             
             const Text(
               "Create Your Account",
@@ -79,6 +83,7 @@ class _SignupScreenState extends State<SignupScreen> {
               label: "Username",
               hint: "Design_Divas",
               icon: Icons.person_outline,
+              autofillHints: const [AutofillHints.newUsername],
             ),
 
             const SizedBox(height: 18),
@@ -90,6 +95,7 @@ class _SignupScreenState extends State<SignupScreen> {
               hint: "+94 76 123 4567",
               icon: Icons.phone_outlined,
               keyboardType: TextInputType.phone,
+              autofillHints: const [AutofillHints.telephoneNumber],
             ),
 
             const SizedBox(height: 18),
@@ -103,6 +109,7 @@ class _SignupScreenState extends State<SignupScreen> {
               hint: "hellogirl@gmail.com",
               icon: Icons.email_outlined,
               keyboardType: TextInputType.emailAddress,
+              autofillHints: const [AutofillHints.email],
             ),
 
             const SizedBox(height: 18),
@@ -111,6 +118,7 @@ class _SignupScreenState extends State<SignupScreen> {
             TextField(
               controller: passwordCtrl,
               obscureText: hidePassword,
+              autofillHints: const [AutofillHints.newPassword],
               decoration: InputDecoration(
                 labelText: "Password",
                 prefixIcon: const Icon(Icons.lock_outline),
@@ -154,6 +162,7 @@ class _SignupScreenState extends State<SignupScreen> {
               ),
           ],
         ),
+        ),
       ),
     );
   }
@@ -164,10 +173,12 @@ class _SignupScreenState extends State<SignupScreen> {
     required String hint,
     required IconData icon,
     TextInputType keyboardType = TextInputType.text,
+    Iterable<String>? autofillHints,
   }) {
     return TextField(
       controller: controller,
       keyboardType: keyboardType,
+      autofillHints: autofillHints,
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,

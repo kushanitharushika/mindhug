@@ -85,6 +85,11 @@ class Exercise {
        case 'physical': return ExerciseType.physical;
        case 'meditation': return ExerciseType.meditation;
        case 'grounding': return ExerciseType.grounding;
+       case 'journaling': return ExerciseType.journaling;
+       case 'music': return ExerciseType.music;
+       case 'visualization': return ExerciseType.visualization;
+       case 'social': return ExerciseType.social;
+       case 'planning': return ExerciseType.planning;
        default: return ExerciseType.other;
      }
   }
