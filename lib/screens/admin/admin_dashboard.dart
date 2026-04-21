@@ -9,8 +9,8 @@ import '../auth/auth_wrapper.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'admin_overview.dart';
 import 'admin_users_screen.dart';
-import 'admin_quiz_screen.dart';
-import 'admin_exercises_screen.dart';
+import 'admin_content_screen.dart';
+import 'admin_analysis_screen.dart';
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
@@ -25,8 +25,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
   final List<Widget> _screens = [
     const AdminOverview(),
     const AdminUsersScreen(),
-    const AdminQuizScreen(),
-    const AdminExercisesScreen(),
+    const AdminContentScreen(),
+    const AdminAnalysisScreen(),
     const _AdminProfileScreen(),
   ];
 
@@ -69,8 +69,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
               children: [
                 _buildNavItem(0, "Overview", Icons.dashboard_rounded),
                 _buildNavItem(1, "Users", Icons.people_alt_rounded),
-                _buildNavItem(2, "Quiz", Icons.quiz_rounded),
-                _buildNavItem(3, "Exercises", Icons.fitness_center_rounded),
+                _buildNavItem(2, "Content", Icons.library_books_rounded),
+                _buildNavItem(3, "Analysis", Icons.insights_rounded),
                 _buildNavItem(4, "Profile", Icons.person_rounded),
               ],
             ),

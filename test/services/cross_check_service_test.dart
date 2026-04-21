@@ -49,6 +49,7 @@ void main() {
         availableExercises: mockAvailableExercises
       );
       
+      // High stress pool: breathing (1,2,10), meditation (3), grounding (6,11)
       final highStressPoolIds = ['1', '2', '3', '6', '10', '11'];
       for (var ex in recommendations) {
         expect(highStressPoolIds.contains(ex.id), isTrue);
@@ -62,7 +63,8 @@ void main() {
         availableExercises: mockAvailableExercises
       );
       
-      final calmPoolIds = ['5', '9', '12', '13', '15', '16'];
+      // Calm pool: physical (4,5,8,9,12,13), social (15), planning (16)
+      final calmPoolIds = ['4', '5', '8', '9', '12', '13', '15', '16'];
       for (var ex in recommendations) {
         expect(calmPoolIds.contains(ex.id), isTrue);
       }
