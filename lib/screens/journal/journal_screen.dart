@@ -25,24 +25,29 @@ class _JournalScreenState extends State<JournalScreen> {
   void _addEntry() async {
     final result = await _openEntryScreen();
     if (result != null && result['action'] == 'save') {
-       final entry = result['entry'] as JournalEntry;
-       
-       try {
-         final user = FirebaseAuth.instance.currentUser;
-         if (user != null) {
-           await FirebaseFirestore.instance.collection('journal').add({
-             ...entry.toJson(),
-             'userId': user.uid,
-             'date': DateTime.now().toIso8601String(), // Ensure current time
-           });
-         }
-       } catch (e) {
-         if (mounted) {
-           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error saving: $e")));
-         }
-       }
+      final entry = result['entry'] as JournalEntry;
+
+      try {
+        final user = FirebaseAuth.instance.currentUser;
+        if (user != null) {
+          debugPrint('Saving journal to Firestore. Images: ${entry.images}');
+          await FirebaseFirestore.instance.collection('journal').add({
+            ...entry.toJson(),
+            'userId': user.uid,
+            'date': DateTime.now().toIso8601String(),
+          });
+          debugPrint('Journal saved successfully.');
+        }
+      } catch (e) {
+        debugPrint('Firestore journal save error: $e');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Error saving: $e')));
+        }
+      }
     }
   }
+
 
   void _editEntry(JournalEntry entry) async {
     final result = await _openEntryScreen(existingEntry: entry);

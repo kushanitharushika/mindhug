@@ -78,58 +78,79 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
     if (_textController.text.trim().isEmpty) return;
 
     setState(() => _isSaving = true);
-    
+
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
-        // Handle unauthenticated state if needed, but app should ensure auth
-        // For now just return
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Error: Not signed in")));
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Error: Not signed in")));
         setState(() => _isSaving = false);
         return;
       }
 
       List<String> finalImagePaths = [];
 
-      // Upload new images
+      // Upload new images — skip (with warning) if an individual upload fails
       for (String path in _selectedImages) {
         if (path.startsWith('http')) {
-          finalImagePaths.add(path); // Already a URL
+          finalImagePaths.add(path); // Already a cloud URL
         } else {
-          // Local file, upload it
-          final file = File(path);
-          if (await file.exists()) {
-             final fileName = 'journal_${DateTime.now().millisecondsSinceEpoch}_${path.hashCode}.jpg';
-             final ref = FirebaseStorage.instance.ref().child('uploads/${user.uid}/journal/$fileName');
-             await ref.putFile(file);
-             final url = await ref.getDownloadURL();
-             finalImagePaths.add(url);
+          try {
+            final file = File(path);
+            if (await file.exists()) {
+              final fileName =
+                  'journal_${DateTime.now().millisecondsSinceEpoch}_${path.hashCode.abs()}.jpg';
+              final ref = FirebaseStorage.instance
+                  .ref('uploads/${user.uid}/journal/$fileName');
+              debugPrint('Uploading to: ${ref.fullPath}');
+              await ref.putFile(file);
+              final url = await ref.getDownloadURL();
+              debugPrint('Upload success. URL: $url');
+              finalImagePaths.add(url);
+            } else {
+              debugPrint('File not found on device: $path');
+            }
+          } catch (uploadErr) {
+            debugPrint('Image upload failed for $path: $uploadErr');
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('⚠️ One photo could not be uploaded: $uploadErr'),
+                  duration: const Duration(seconds: 4),
+                ),
+              );
+            }
+            // Continue saving the entry without this image
           }
         }
       }
 
       final newEntry = JournalEntry(
-        id: widget.entry?.id, // Keep existing ID if editing
+        id: widget.entry?.id,
         userId: user.uid,
-        title: _titleController.text.trim().isEmpty ? null : _titleController.text.trim(),
+        title: _titleController.text.trim().isEmpty
+            ? null
+            : _titleController.text.trim(),
         text: _textController.text.trim(),
         mood: _selectedMood,
         tags: _selectedTags,
         images: finalImagePaths,
-        date: widget.entry?.date, 
+        date: widget.entry?.date,
       );
 
       if (mounted) {
         Navigator.pop(context, {'action': 'save', 'entry': newEntry});
       }
     } catch (e) {
-      debugPrint("Error saving journal entry: $e");
+      debugPrint('Journal save error: $e');
       if (mounted) {
-         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Failed to save: $e")));
-         setState(() => _isSaving = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to save: $e')));
+        setState(() => _isSaving = false);
       }
     }
   }
+
 
   void _delete() {
     Navigator.pop(context, {'action': 'delete'});
@@ -451,7 +472,9 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
                                         decoration: BoxDecoration(
                                           borderRadius: BorderRadius.circular(20),
                                           image: DecorationImage(
-                                            image: FileImage(File(_selectedImages[index])),
+                                            image: _selectedImages[index].startsWith('http')
+                                              ? NetworkImage(_selectedImages[index])
+                                              : FileImage(File(_selectedImages[index])) as ImageProvider,
                                             fit: BoxFit.cover,
                                           ),
                                           boxShadow: [
