@@ -103,15 +103,22 @@ class _StroopResultScreenState extends State<StroopResultScreen> {
   Future<void> _processResults() async {
     // 1. Fetch AI Prediction from the ML Engine
     try {
+      String apiUrl = 'http://127.0.0.1:8000/predict_stroop';
+      try {
+        if (Theme.of(context).platform == TargetPlatform.android) {
+          apiUrl = 'http://10.0.2.2:8000/predict_stroop';
+        }
+      } catch (_) {}
+
       final response = await http.post(
-        Uri.parse('http://10.0.2.2:8000/predict_stroop'),
+        Uri.parse(apiUrl),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'reaction_time': _avgReactionTime.toDouble(),
           'error_rate': _errorRate,
           'stroop_effect': _stroopEffect.toDouble(),
         }),
-      ).timeout(const Duration(seconds: 4));
+      ).timeout(const Duration(seconds: 8));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);

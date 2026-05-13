@@ -418,16 +418,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         },
                       ),
                       const SizedBox(height: 10),
-                      ElevatedButton.icon(
-                        onPressed: () async {
-                           await NotificationService().showInstantNotification(
-                             id: 99, 
-                             title: "Test Notification", 
-                             body: "This is how your MindHug reminders will look!"
-                           );
-                        },
-                        icon: const Icon(Icons.send),
-                        label: const Text("Send Test Notification"),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: () async {
+                             await NotificationService().showInstantNotification(
+                               id: 99, 
+                               title: "Test Notification", 
+                               body: "This is how your MindHug reminders will look!"
+                             );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          icon: const Icon(Icons.notifications_active, size: 20),
+                          label: const Text(
+                            "Send Test Notification",
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
                       )
                     ],
                   ),

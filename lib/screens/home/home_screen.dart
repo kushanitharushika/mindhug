@@ -45,6 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _initNotifications() async {
     await _notificationService.init();
+    await _notificationService.requestPermissions();
     await _notificationService.scheduleDailyStroopReminder();
   }
 
