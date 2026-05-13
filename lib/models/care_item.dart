@@ -9,6 +9,12 @@ class CareItem {
   final String type; // 'checkbox' or 'counter'
   final int currentProgress;
   final int maxProgress;
+  final int minTarget; // Minimum target allowed when editing
+  final bool isDeletable;
+  
+  // Custom Time Period
+  final String? startTime; // "10:00" or similar
+  final String? endTime;   // "12:00" or similar
 
   CareItem({
     required this.id,
@@ -19,6 +25,10 @@ class CareItem {
     this.type = 'checkbox',
     this.currentProgress = 0,
     this.maxProgress = 1,
+    this.minTarget = 1,
+    this.isDeletable = true,
+    this.startTime,
+    this.endTime,
   });
 
   CareItem copyWith({
@@ -30,6 +40,10 @@ class CareItem {
     String? type,
     int? currentProgress,
     int? maxProgress,
+    int? minTarget,
+    bool? isDeletable,
+    String? startTime,
+    String? endTime,
   }) {
     return CareItem(
       id: id ?? this.id,
@@ -40,6 +54,10 @@ class CareItem {
       type: type ?? this.type,
       currentProgress: currentProgress ?? this.currentProgress,
       maxProgress: maxProgress ?? this.maxProgress,
+      minTarget: minTarget ?? this.minTarget,
+      isDeletable: isDeletable ?? this.isDeletable,
+      startTime: startTime ?? this.startTime,
+      endTime: endTime ?? this.endTime,
     );
   }
   
@@ -53,6 +71,10 @@ class CareItem {
       'type': type,
       'currentProgress': currentProgress,
       'maxProgress': maxProgress,
+      'minTarget': minTarget,
+      'isDeletable': isDeletable,
+      'startTime': startTime,
+      'endTime': endTime,
     };
   }
 
@@ -66,6 +88,10 @@ class CareItem {
       type: json['type'] ?? 'checkbox',
       currentProgress: json['currentProgress'] ?? 0,
       maxProgress: json['maxProgress'] ?? 1,
+      minTarget: json['minTarget'] ?? 1,
+      isDeletable: json['isDeletable'] ?? true,
+      startTime: json['startTime'],
+      endTime: json['endTime'],
     );
   }
 }

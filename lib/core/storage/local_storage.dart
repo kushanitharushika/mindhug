@@ -114,6 +114,19 @@ class LocalStorage {
     await prefs.remove('mental_health_level');
     await prefs.remove('quiz_completed');
   }
+
+  /// Save last Stroop game played date
+  static Future<void> saveLastStroopPlayedDate() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('last_stroop_played', DateTime.now().toIso8601String());
+  }
+
+  /// Get last Stroop game played date
+  static Future<String?> getLastStroopPlayedDate() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('last_stroop_played');
+  }
+
   /// Save user profile
   static Future<void> saveUserProfile({
     required String name,
@@ -177,6 +190,24 @@ class LocalStorage {
     if (jsonString == null) return [];
     
     final List<dynamic> jsonList = jsonDecode(jsonString);
-    return jsonList.map((e) => CareItem.fromJson(e)).toList();
+    List<CareItem> items = jsonList.map((e) => CareItem.fromJson(e)).toList();
+
+    // Check for daily reset
+    final lastReset = prefs.getString('last_care_reset_date');
+    final today = DateTime.now().toIso8601String().split('T')[0];
+    
+    if (lastReset != today) {
+      // It's a new day, reset progress
+      items = items.map((item) => item.copyWith(
+        currentProgress: 0,
+        isCompleted: false,
+      )).toList();
+      
+      // Save the reset items and update the reset date
+      await saveCareItems(items);
+      await prefs.setString('last_care_reset_date', today);
+    }
+    
+    return items;
   }
 }

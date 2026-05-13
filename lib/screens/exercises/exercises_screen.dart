@@ -93,25 +93,54 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
     setState(() {
       _allExercises = _repoExercises;
       if (savedCareItems.isNotEmpty) {
-        _careItems = savedCareItems;
+        // Remove old defaults if they exist
+        _careItems = savedCareItems.where((item) => 
+          item.title != 'Screen Break' && item.title != 'Posture Check'
+        ).toList();
+        
+        // Ensure Drink Timer has isDeletable = false, or add it if missing
+        final idx = _careItems.indexWhere((c) => c.title == 'Drink Timer');
+        if (idx != -1) {
+          _careItems[idx] = _careItems[idx].copyWith(isDeletable: false);
+        } else {
+          // Restore missing Drink Timer
+          _careItems.insert(0, CareItem(
+            id: 'c1', 
+            title: 'Drink Timer', 
+            description: '8 glasses daily for mental wellbeing', 
+            startTime: '08:00 AM',
+            endTime: '08:00 PM',
+            type: 'counter', 
+            maxProgress: 8,
+            minTarget: 8,
+            isDeletable: false,
+          ));
+          LocalStorage.saveCareItems(_careItems);
+        }
       } else {
         // Default items if none saved
         _careItems = [
-          CareItem(id: 'c1', title: 'Drink Timer', description: '8 glasses daily for mental wellbeing', reminderTime: 'Every 2 hours', type: 'counter', maxProgress: 8),
-          CareItem(id: 'c2', title: 'Screen Break', description: 'Look away from screen for 20s', reminderTime: 'Every 20m'),
-          CareItem(id: 'c3', title: 'Posture Check', description: 'Sit up straight', reminderTime: 'Every 30m'),
+          CareItem(
+            id: 'c1', 
+            title: 'Drink Timer', 
+            description: '8 glasses daily for mental wellbeing', 
+            startTime: '08:00 AM',
+            endTime: '08:00 PM',
+            type: 'counter', 
+            maxProgress: 8,
+            minTarget: 8,
+            isDeletable: false,
+          ),
         ];
       }
       
-      // Schedule reminder if Drink Timer is active
-      if (_careItems.any((c) => c.title == 'Drink Timer' && !c.isCompleted)) {
-        NotificationService().scheduleTwoHourNotification(
-          id: 1001, 
-          title: "Stay Hydrated 💧", 
-          body: "Time for a glass of water to support your mental wellbeing!"
-        );
-      } else if (_careItems.any((c) => c.title == 'Drink Timer' && c.isCompleted)) {
-        NotificationService().cancelNotification(1001); // Cancel if target met
+      // Sync notifications for all care items (reschedules them if it's a new day and progress reset)
+      for (final item in _careItems) {
+        if (!item.isCompleted) {
+          NotificationService().scheduleCareItemReminders(item);
+        } else {
+          NotificationService().cancelCareItemReminders(item.id);
+        }
       }
       
       _generateCrossCheckPlan();
@@ -191,13 +220,27 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
     setState(() {
       final idx = _careItems.indexWhere((item) => item.title == 'Drink Timer');
       if (idx != -1) {
-        // Only update if the logic changed the target
-        if (_careItems[idx].maxProgress != target) {
-          _careItems[idx] = _careItems[idx].copyWith(
-            maxProgress: target,
-            description: '$target glasses today 💧',
+        final currentItem = _careItems[idx];
+        // Only update if the ML logic changed the target
+        if (currentItem.minTarget != target) {
+          int newMax = currentItem.maxProgress;
+          // If the user manually increased it above the old minTarget, preserve the difference
+          // Or just ensure maxProgress is at least the new target
+          if (newMax < target) {
+            newMax = target;
+          }
+          
+          _careItems[idx] = currentItem.copyWith(
+            minTarget: target,
+            maxProgress: newMax,
+            description: '$newMax glasses today 💧',
           );
           LocalStorage.saveCareItems(_careItems);
+          
+          // Reschedule if it changed
+          if (!currentItem.isCompleted) {
+             NotificationService().scheduleCareItemReminders(_careItems[idx]);
+          }
         }
       }
     });
@@ -292,15 +335,17 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
     
     return ExerciseType.other;
   }
-  void _addCareItem(String title) {
+  void _addCareItem(CareItem item) {
     setState(() {
-      _careItems.add(CareItem(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        title: title,
-        description: '',
-      ));
+      final index = _careItems.indexWhere((i) => i.id == item.id);
+      if (index != -1) {
+        _careItems[index] = item;
+      } else {
+        _careItems.add(item);
+      }
     });
     LocalStorage.saveCareItems(_careItems);
+    NotificationService().scheduleCareItemReminders(item);
   }
 
   void _deleteCareItem(String id) {
@@ -308,6 +353,7 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
       _careItems.removeWhere((item) => item.id == id);
     });
     LocalStorage.saveCareItems(_careItems);
+    NotificationService().cancelCareItemReminders(id);
   }
 
   void _toggleCareItem(String id, bool val) {
@@ -315,6 +361,11 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
       final index = _careItems.indexWhere((item) => item.id == id);
       if (index != -1) {
         _careItems[index] = _careItems[index].copyWith(isCompleted: val);
+        if (val) {
+          NotificationService().cancelCareItemReminders(id);
+        } else {
+          NotificationService().scheduleCareItemReminders(_careItems[index]);
+        }
       }
     });
     LocalStorage.saveCareItems(_careItems); // Save state
@@ -333,16 +384,10 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
           isCompleted: isNowDone,
         );
 
-        // Cancel the water reminder if done
-        if (item.title == 'Drink Timer' && isNowDone) {
-          NotificationService().cancelNotification(1001);
-        } else if (item.title == 'Drink Timer' && !isNowDone) {
-          // Re-enable if they undo the action
-          NotificationService().scheduleTwoHourNotification(
-            id: 1001, 
-            title: "Stay Hydrated 💧", 
-            body: "Time for a glass of water to support your mental wellbeing!"
-          );
+        if (isNowDone) {
+          NotificationService().cancelCareItemReminders(id);
+        } else {
+          NotificationService().scheduleCareItemReminders(_careItems[index]);
         }
       }
     });
