@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../models/journal_entry.dart';
 import '../../models/care_item.dart';
 
@@ -180,20 +181,24 @@ class LocalStorage {
   static Future<void> saveCareItems(List<CareItem> items) async {
     final prefs = await SharedPreferences.getInstance();
     final String jsonString = jsonEncode(items.map((e) => e.toJson()).toList());
-    await prefs.setString('care_items', jsonString);
+    final user = FirebaseAuth.instance.currentUser;
+    final userId = user?.uid ?? 'guest';
+    await prefs.setString('care_items_$userId', jsonString);
   }
 
   /// Get care items
   static Future<List<CareItem>> getCareItems() async {
     final prefs = await SharedPreferences.getInstance();
-    final String? jsonString = prefs.getString('care_items');
+    final user = FirebaseAuth.instance.currentUser;
+    final userId = user?.uid ?? 'guest';
+    final String? jsonString = prefs.getString('care_items_$userId');
     if (jsonString == null) return [];
     
     final List<dynamic> jsonList = jsonDecode(jsonString);
     List<CareItem> items = jsonList.map((e) => CareItem.fromJson(e)).toList();
 
     // Check for daily reset
-    final lastReset = prefs.getString('last_care_reset_date');
+    final lastReset = prefs.getString('last_care_reset_date_$userId');
     final today = DateTime.now().toIso8601String().split('T')[0];
     
     if (lastReset != today) {
@@ -205,7 +210,7 @@ class LocalStorage {
       
       // Save the reset items and update the reset date
       await saveCareItems(items);
-      await prefs.setString('last_care_reset_date', today);
+      await prefs.setString('last_care_reset_date_$userId', today);
     }
     
     return items;
