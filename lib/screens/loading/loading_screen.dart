@@ -43,10 +43,12 @@ class _LoadingScreenState extends State<LoadingScreen>
       if (widget.onFinish != null) {
         widget.onFinish!.call();
       } else {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const LoginScreen()),
-        );
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const LoginScreen()),
+          );
+        }
       }
     });
   }
@@ -66,12 +68,12 @@ class _LoadingScreenState extends State<LoadingScreen>
           opacity: _fade,
           child: ScaleTransition(
             scale: _scale,
-            child: Column(
+            child: const Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const MindHugLogo(size: 96),
-                const SizedBox(height: 18),
-                const SizedBox(
+                MindHugLogo(size: 96),
+                SizedBox(height: 18),
+                SizedBox(
                   width: 36,
                   height: 36,
                   child: CircularProgressIndicator(

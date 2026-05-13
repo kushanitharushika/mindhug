@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
 import '../quiz/mental_health_quiz.dart';
-import '../../widgets/bottom_nav.dart';
-import '../../core/storage/local_storage.dart';
 import '../../widgets/app_scaffold.dart';
+import 'package:flutter/services.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -14,7 +13,8 @@ class SignupScreen extends StatefulWidget {
 
 class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController usernameCtrl = TextEditingController();
-  final TextEditingController birthdayCtrl = TextEditingController();
+  final TextEditingController phoneCtrl = TextEditingController();
+
   final TextEditingController emailCtrl = TextEditingController();
   final TextEditingController passwordCtrl = TextEditingController();
   
@@ -23,19 +23,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
   bool hidePassword = true;
 
-  Future<void> pickDate() async {
-    final date = await showDatePicker(
-      context: context,
-      initialDate: DateTime(2003),
-      firstDate: DateTime(1980),
-      lastDate: DateTime.now(),
-    );
 
-    if (date != null) {
-      birthdayCtrl.text =
-          "${date.year}/${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}";
-    }
-  }
 
   void _handleSignup() async {
     setState(() => _isLoading = true);
@@ -43,20 +31,19 @@ class _SignupScreenState extends State<SignupScreen> {
       await _authService.createUserWithEmailAndPassword(
         email: emailCtrl.text.trim(),
         password: passwordCtrl.text.trim(),
+        name: usernameCtrl.text.trim(),
+        phoneNumber: phoneCtrl.text.trim(),
       );
       
-      // Check quiz completion
-      final quizCompleted = await LocalStorage.isQuizCompleted();
-
+      TextInput.finishAutofillContext();
+      
       if (!mounted) return;
 
-      // Navigate based on logic
+      // Always navigate to Quiz for new users
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (_) => quizCompleted
-              ? const BottomNav()
-              : const MentalHealthQuiz(),
+          builder: (_) => const MentalHealthQuiz(),
         ),
       );
     } catch (e) {
@@ -76,11 +63,12 @@ class _SignupScreenState extends State<SignupScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-
-            const SizedBox(height: 30),
+        child: AutofillGroup(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+  
+              const SizedBox(height: 30),
             
             const Text(
               "Create Your Account",
@@ -95,27 +83,24 @@ class _SignupScreenState extends State<SignupScreen> {
               label: "Username",
               hint: "Design_Divas",
               icon: Icons.person_outline,
+              autofillHints: const [AutofillHints.newUsername],
             ),
 
             const SizedBox(height: 18),
 
-            // Birthday
-            TextField(
-              controller: birthdayCtrl,
-              readOnly: true,
-              onTap: pickDate,
-              decoration: InputDecoration(
-                labelText: "Birthday",
-                hintText: "YYYY/MM/DD",
-                prefixIcon: const Icon(Icons.cake_outlined),
-                suffixIcon: const Icon(Icons.calendar_today),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
+            // Phone Number
+            _inputField(
+              controller: phoneCtrl,
+              label: "Phone Number",
+              hint: "+94 76 123 4567",
+              icon: Icons.phone_outlined,
+              keyboardType: TextInputType.phone,
+              autofillHints: const [AutofillHints.telephoneNumber],
             ),
 
             const SizedBox(height: 18),
+
+
 
             // Email
             _inputField(
@@ -124,6 +109,7 @@ class _SignupScreenState extends State<SignupScreen> {
               hint: "hellogirl@gmail.com",
               icon: Icons.email_outlined,
               keyboardType: TextInputType.emailAddress,
+              autofillHints: const [AutofillHints.email],
             ),
 
             const SizedBox(height: 18),
@@ -132,6 +118,7 @@ class _SignupScreenState extends State<SignupScreen> {
             TextField(
               controller: passwordCtrl,
               obscureText: hidePassword,
+              autofillHints: const [AutofillHints.newPassword],
               decoration: InputDecoration(
                 labelText: "Password",
                 prefixIcon: const Icon(Icons.lock_outline),
@@ -175,6 +162,7 @@ class _SignupScreenState extends State<SignupScreen> {
               ),
           ],
         ),
+        ),
       ),
     );
   }
@@ -185,10 +173,12 @@ class _SignupScreenState extends State<SignupScreen> {
     required String hint,
     required IconData icon,
     TextInputType keyboardType = TextInputType.text,
+    Iterable<String>? autofillHints,
   }) {
     return TextField(
       controller: controller,
       keyboardType: keyboardType,
+      autofillHints: autofillHints,
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,

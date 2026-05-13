@@ -1,0 +1,50 @@
+name: Continuous Deployment (Release)
+
+on:
+  push:
+    tags:
+      - 'v*' # Trigger only when opening a version tag like v1.0.0 or v2.3.1
+
+jobs:
+  build_and_release:
+    name: Build & Release Android APK
+    runs-on: ubuntu-22.04
+    
+    permissions:
+      contents: write # Needed for generating the GitHub Release
+      
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Run Tests
+        run: flutter test
+
+      - name: Build Android Release APK
+        run: flutter build apk --release
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/app/outputs/flutter-apk/app-release.apk
+          name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

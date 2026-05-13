@@ -10,6 +10,9 @@ class CustomTextField extends StatelessWidget {
   final String? Function(String?)? validator;
 
   final String? hint;
+  final Widget? suffixIcon;
+  final Iterable<String>? autofillHints;
+  final TextInputAction? textInputAction;
 
   const CustomTextField({
     super.key,
@@ -20,6 +23,9 @@ class CustomTextField extends StatelessWidget {
     this.keyboardType,
     this.controller,
     this.validator,
+    this.suffixIcon,
+    this.autofillHints,
+    this.textInputAction,
   });
 
   @override
@@ -40,9 +46,12 @@ class CustomTextField extends StatelessWidget {
           obscureText: obscureText,
           keyboardType: keyboardType,
           validator: validator,
+          autofillHints: autofillHints,
+          textInputAction: textInputAction,
           style: const TextStyle(fontWeight: FontWeight.w500),
           decoration: InputDecoration(
             prefixIcon: Icon(prefixIcon, size: 22),
+            suffixIcon: suffixIcon,
             hintText: hint ?? 'Enter your $label',
           ),
         ),

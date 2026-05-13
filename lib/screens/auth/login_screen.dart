@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/custom_text_field.dart';
 import '../../core/widgets/primary_button.dart';
-import '../../widgets/bottom_nav.dart';
 import '../../widgets/mindhug_logo.dart';
 import 'forgot_password_screen.dart';
 import 'signup_screen.dart';
+
+import '../../services/auth_service.dart';
+import 'package:flutter/services.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -20,6 +23,11 @@ class _LoginScreenState extends State<LoginScreen>
   late final AnimationController _animController;
   late final Animation<double> _floating;
 
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _authService = AuthService();
+  bool _isLoading = false;
+  bool _isPasswordVisible = false;
 
   @override
   void initState() {
@@ -36,15 +44,67 @@ class _LoginScreenState extends State<LoginScreen>
       ),
     );
 
-
-
     _animController.forward();
     _animController.repeat(reverse: true);
+    _loadUserEmail();
+  }
+
+  Future<void> _loadUserEmail() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedEmail = prefs.getString('saved_email');
+    final savedPassword = prefs.getString('saved_password');
+    final isRemembered = prefs.getBool('remember_me') ?? false;
+
+    if (mounted && isRemembered && savedEmail != null) {
+      setState(() {
+        _emailController.text = savedEmail;
+        if (savedPassword != null) {
+          _passwordController.text = savedPassword;
+        }
+        rememberMe = true;
+      });
+    }
+  }
+
+  void _handleLogin() async {
+    setState(() => _isLoading = true);
+    try {
+      final email = _emailController.text.trim();
+      final password = _passwordController.text.trim();
+      
+      // Save or Clear Preferences
+      final prefs = await SharedPreferences.getInstance();
+      if (rememberMe) {
+        await prefs.setString('saved_email', email);
+        await prefs.setString('saved_password', password);
+        await prefs.setBool('remember_me', true);
+      } else {
+        await prefs.remove('saved_email');
+        await prefs.remove('saved_password');
+        await prefs.setBool('remember_me', false);
+      }
+
+      await _authService.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      TextInput.finishAutofillContext();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Login failed: ${e.toString()}')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   @override
   void dispose() {
     _animController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
@@ -62,7 +122,7 @@ class _LoginScreenState extends State<LoginScreen>
           Container(
             decoration: BoxDecoration(
               gradient: isDark 
-                  ? LinearGradient(
+                  ? const LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [AppColors.backgroundDark, Colors.black],
@@ -158,22 +218,34 @@ class _LoginScreenState extends State<LoginScreen>
                                           ),
                                         ],
                                 ),
-                                child: Column(
-                                  children: [
-                                    CustomTextField(
-                                      label: 'Email',
-                                      prefixIcon: Icons.email_outlined,
-                                      keyboardType: TextInputType.emailAddress,
-                                      controller: _emailController,
-                                    ),
-                                    const SizedBox(height: 20),
-                                    CustomTextField(
-                                      label: 'Password',
-                                      prefixIcon: Icons.lock_outlined,
-                                      obscureText: true,
-                                      controller: _passwordController,
-                                    ),
-                                    const SizedBox(height: 12),
+                                child: AutofillGroup(
+                                  child: Column(
+                                    children: [
+                                      CustomTextField(
+                                        label: 'Email',
+                                        prefixIcon: Icons.email_outlined,
+                                        keyboardType: TextInputType.emailAddress,
+                                        controller: _emailController,
+                                        autofillHints: const [AutofillHints.email],
+                                        textInputAction: TextInputAction.next,
+                                      ),
+                                      const SizedBox(height: 20),
+                                      CustomTextField(
+                                        label: 'Password',
+                                        prefixIcon: Icons.lock_outlined,
+                                        obscureText: !_isPasswordVisible,
+                                        controller: _passwordController,
+                                        autofillHints: const [AutofillHints.password],
+                                        textInputAction: TextInputAction.done,
+                                        suffixIcon: IconButton(
+                                          icon: Icon(
+                                            _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                                            color: Colors.grey,
+                                          ),
+                                          onPressed: () => setState(() => _isPasswordVisible = !_isPasswordVisible),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 12),
                                     
                                     // Remember & Forgot
                                     Row(
@@ -226,7 +298,9 @@ class _LoginScreenState extends State<LoginScreen>
                                       ),
                                   ],
                                 ),
-                              ),const SizedBox(height: 24),
+                                ),
+                              ),
+                              const SizedBox(height: 24),
                               
                               const Spacer(), // Flexible space middle
                               
@@ -273,7 +347,7 @@ class _LoginScreenState extends State<LoginScreen>
                                         context,
                                         MaterialPageRoute(builder: (_) => const SignupScreen()),
                                       ),
-                                      child: Text(
+                                      child: const Text(
                                         'Create Account',
                                         style: TextStyle(
                                           color: AppColors.primary,

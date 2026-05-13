@@ -7,11 +7,13 @@ class AppScaffold extends StatelessWidget {
     required this.child,
     this.showLogo = true,
     this.padding,
+    this.bottomNavigationBar,
   });
 
   final Widget child;
   final bool showLogo;
   final EdgeInsets? padding;
+  final Widget? bottomNavigationBar;
 
   @override
   Widget build(BuildContext context) {
@@ -23,13 +25,14 @@ class AppScaffold extends StatelessWidget {
         automaticallyImplyLeading: false,
         leading: const SizedBox.shrink(),
       ),
+      bottomNavigationBar: bottomNavigationBar,
       body: Container(
         decoration: BoxDecoration(
           gradient: Theme.of(context).brightness == Brightness.dark
-              ? LinearGradient(
+              ? const LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [const Color(0xFF121212), Colors.black],
+                  colors: [Color(0xFF121212), Colors.black],
                 )
               : LinearGradient(
                   begin: Alignment.topLeft,
