@@ -39,8 +39,13 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _notificationService.init();
+    _initNotifications();
     _loadData();
+  }
+
+  Future<void> _initNotifications() async {
+    await _notificationService.init();
+    await _notificationService.scheduleDailyStroopReminder();
   }
 
   Future<void> _loadData() async {

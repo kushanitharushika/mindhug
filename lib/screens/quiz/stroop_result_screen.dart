@@ -10,6 +10,7 @@ import '../../core/theme/app_colors.dart';
 import '../../models/exercise.dart';
 import '../../data/mock_exercises.dart';
 import '../../services/cross_check_service.dart';
+import '../../services/notification_service.dart';
 import '../exercises/exercise_detail_screen.dart';
 import 'stroop_game_screen.dart';
 
@@ -210,6 +211,10 @@ class _StroopResultScreenState extends State<StroopResultScreen> {
           _isAnalyzing = false;
         });
       }
+
+      // Save last played date and reschedule reminder
+      await LocalStorage.saveLastStroopPlayedDate();
+      await NotificationService().scheduleDailyStroopReminder();
     } catch (e) {
       debugPrint("Firebase Save Error: $e");
       if (mounted) {
